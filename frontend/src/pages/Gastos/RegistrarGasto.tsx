@@ -202,6 +202,30 @@ export default function RegistrarGasto({
     }
   };
 
+  const handleXmlUpload = async (file: File) => {
+    setIsSearchingSap(true); // Reusamos el estado de carga
+    try {
+      const result = await extractXmlData(file);
+      setForm(prev => ({
+        ...prev,
+        tipo: 'FACTURA',
+        nitProveedor: result.nitProveedor || '',
+        razonSocial: result.razonSocial || '',
+        numeroFactura: result.numeroFactura || '',
+        fechaEmision: result.fechaEmision ? new Date(result.fechaEmision).toISOString().split('T')[0] : '',
+        subtotal: result.subtotal ? String(result.subtotal) : '',
+        iva: result.iva ? String(result.iva) : '',
+        amount: result.amount ? String(result.amount) : '',
+        description: result.description || 'Lectura desde XML Electrónico',
+      }));
+      notify('Documento XML procesado exitosamente', 'success');
+    } catch (err: any) {
+      notify(err.response?.data?.message ?? 'Error procesando el archivo XML', 'error');
+    } finally {
+      setIsSearchingSap(false);
+    }
+  };
+
   const handleOcrUpload = async (file: File) => {
     setIsProcessingOcr(true);
     try {
@@ -371,30 +395,64 @@ export default function RegistrarGasto({
           {/* ── Columna Izquierda: Asistentes (SAP/OCR) y Formulario ── */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Buscador SAP */}
+            {/* Buscador SAP o XML */}
             {(form.origen === 'ELECTRONICA' && (mode === 'create' || form.sapDocId)) && (
               <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5">
                 <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2 text-sm">
-                  <UploadCloud size={16} />
-                  Integración SAP ERP
+                  <FileText size={16} />
+                  Búsqueda por NIT o XML Electrónico
                 </div>
                 {mode === 'create' && !form.sapDocId ? (
-                  <div className="flex gap-2 mt-3">
-                    <div className="relative flex-1">
-                      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input 
-                        type="text" placeholder="Buscar por NIT del proveedor..."
-                        value={sapSearchTerm} onChange={e => setSapSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2.5 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-sm"
-                      />
+                  <>
+                    <div className="flex gap-3">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          placeholder="Ej. 900.123.456-7"
+                          value={sapSearchTerm}
+                          onChange={e => setSapSearchTerm(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                        />
+                      </div>
+                      <button 
+                        onClick={handleSapSearch} disabled={isSearchingSap || !sapSearchTerm}
+                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {isSearchingSap ? <Loader2 size={16} className="animate-spin" /> : 'Buscar'}
+                      </button>
                     </div>
-                    <button 
-                      onClick={handleSapSearch} disabled={isSearchingSap || !sapSearchTerm}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {isSearchingSap ? <Loader2 size={16} className="animate-spin" /> : 'Buscar'}
-                    </button>
-                  </div>
+
+                    <div className="mt-4 flex items-center gap-4">
+                      <div className="flex-1 border-t border-blue-100"></div>
+                      <span className="text-xs text-blue-400 font-medium uppercase">O SUBE EL XML</span>
+                      <div className="flex-1 border-t border-blue-100"></div>
+                    </div>
+
+                    <div className="mt-4">
+                      <label className="border-2 border-dashed border-blue-200 bg-white rounded-xl p-4 flex flex-col items-center justify-center hover:bg-blue-50/50 transition-colors cursor-pointer text-center">
+                        <input type="file" className="hidden" accept=".xml,text/xml" onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleXmlUpload(e.target.files[0]);
+                          }
+                        }} />
+                        {isSearchingSap ? (
+                          <div className="flex items-center gap-2 text-blue-600">
+                            <Loader2 size={20} className="animate-spin" />
+                            <span className="text-sm font-medium">Procesando archivo XML...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2">
+                              <FileText size={20} />
+                            </div>
+                            <span className="text-sm font-medium text-gray-700">Subir XML UBL de la DIAN</span>
+                            <span className="text-xs text-gray-400 mt-1">Extrae automáticamente NIT, Total y Factura</span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  </>
                 ) : (
                   <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-100/50 px-3 py-2 rounded-lg mt-2 border border-blue-100 font-medium">
                     <FileCheck size={16} />

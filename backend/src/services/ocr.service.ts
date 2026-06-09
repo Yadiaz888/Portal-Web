@@ -34,27 +34,32 @@ export const OcrService = {
       for (const line of lines) {
         const lower = line.toLowerCase();
         
-        // Buscar NIT
+        // Buscar NIT (ej: NIT. 901.189.979-5 o 860000261)
         if (!nitProveedor && (lower.includes('nit') || lower.includes('n.i.t'))) {
           const match = line.match(/\d{3}[.\s]?\d{3}[.\s]?\d{3}-?\d?/);
           if (match) nitProveedor = match[0];
         }
 
-        // Buscar Factura
-        if (!numeroFactura && (lower.includes('factura') || lower.includes('fac '))) {
-          const match = line.match(/(?:No\.?|#)?\s*([A-Z0-9-]{3,15})/i);
+        // Buscar Factura o Nota (ej: TR9010, NCTR743, FE-1234)
+        if (!numeroFactura && (lower.includes('factura') || lower.includes('fac ') || lower.includes('nota') || lower.includes('nctr'))) {
+          // Busca palabras como NCTR743, TR9010, FE-9821
+          const match = line.match(/([A-Z]{2,5}-?\d{3,10})/i);
           if (match) numeroFactura = match[1];
         }
 
-        // Buscar Total
+        // Buscar Total (ej: TOTAL A PAGAR COP 2,794,615.42)
         if (!amountStr && (lower.includes('total') || lower.includes('pagar'))) {
-          const match = line.match(/\$?\s*([\d,.]+)/);
-          if (match) amountStr = match[1].replace(/[^\d]/g, ''); // Limpiar símbolos
+          const match = line.match(/([\d,]+\.\d{2}|[\d.]{4,})/);
+          if (match) {
+            // Limpiar separadores de miles y convertir
+            let val = match[1].replace(/,/g, ''); // quita comas si son miles
+            amountStr = val;
+          }
         }
       }
 
-      const amount = amountStr ? Number(amountStr) : undefined;
-      const subtotal = amount ? Math.round(amount / 1.19) : undefined; // Asumiendo 19% IVA por defecto para rellenar
+      const amount = amountStr ? Math.round(Number(amountStr)) : undefined;
+      const subtotal = amount ? Math.round(amount / 1.19) : undefined; // Asumiendo 19% IVA
       const iva = amount ? amount - subtotal! : undefined;
 
       return {
