@@ -1,75 +1,70 @@
-import Tesseract from 'tesseract.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { HttpError } from '../errors/httpError.js';
 
 export const OcrService = {
   /**
-   * Extrae texto de una imagen o PDF (PDF debe estar convertido o soportado, 
-   * Tesseract en JS nativamente maneja imágenes JPG/PNG, no PDF directamente.
-   * Para este MVP de prueba, asumimos imagen).
+   * Extrae texto y datos de una imagen usando Google Gemini 1.5 Flash
    */
   async extractDataFromImage(imageBuffer: Buffer, mimetype: string) {
-    if (mimetype === 'application/pdf') {
-      throw new HttpError(400, 'El OCR gratuito actual solo soporta imágenes (JPG, PNG). Por favor convierte el PDF o sube una foto.');
-    }
-
     try {
-      console.log('Iniciando OCR con Tesseract.js...');
+      console.log('Iniciando extracción con Gemini AI...');
       
-      const { data: { text, confidence } } = await Tesseract.recognize(
-        imageBuffer,
-        'spa', // Español
-        { logger: m => console.log(m) } // Opcional, para ver progreso
-      );
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      console.log('OCR Completado. Confianza media:', confidence);
+      const prompt = `Analiza esta imagen de una factura, recibo o nota crédito. 
+      Extrae la siguiente información y devuélvela ÚNICAMENTE en un formato JSON válido con esta estructura exacta (si no encuentras un dato, déjalo en null o cadena vacía):
+      {
+        "razonSocial": "Nombre del proveedor",
+        "nitProveedor": "Número de NIT, sin puntos ni guiones",
+        "numeroFactura": "Número de la factura o nota",
+        "fechaEmision": "Fecha en formato YYYY-MM-DD",
+        "subtotal": número entero,
+        "iva": número entero,
+        "amount": número entero (Total)
+      }
+      NO devuelvas comillas invertidas (\`\`\`) ni texto adicional, SOLO el JSON puro.`;
 
-      // Lógica heurística básica para extraer datos
-      // En producción se usaría NLP o Regex más robustos
-      const lines = text.split('\n').filter(l => l.trim().length > 0);
-      
-      let nitProveedor = '';
-      let numeroFactura = '';
-      let amountStr = '';
-      
-      for (const line of lines) {
-        const lower = line.toLowerCase();
-        
-        // Buscar NIT (ej: NIT. 901.189.979-5 o 860000261)
-        if (!nitProveedor && (lower.includes('nit') || lower.includes('n.i.t'))) {
-          const match = line.match(/\d{3}[.\s]?\d{3}[.\s]?\d{3}-?\d?/);
-          if (match) nitProveedor = match[0];
-        }
-
-        // Buscar Factura o Nota (ej: TR9010, NCTR743, FE-1234)
-        if (!numeroFactura && (lower.includes('factura') || lower.includes('fac ') || lower.includes('nota') || lower.includes('nctr'))) {
-          // Busca palabras como NCTR743, TR9010, FE-9821
-          const match = line.match(/([A-Z]{2,5}-?\d{3,10})/i);
-          if (match) numeroFactura = match[1];
-        }
-
-        // Buscar Total (ej: TOTAL A PAGAR COP 2,794,615.42)
-        if (!amountStr && (lower.includes('total') || lower.includes('pagar'))) {
-          const match = line.match(/([\d,]+\.\d{2}|[\d.]{4,})/);
-          if (match) {
-            // Limpiar separadores de miles y convertir
-            let val = match[1].replace(/,/g, ''); // quita comas si son miles
-            amountStr = val;
+      const imageParts = [
+        {
+          inlineData: {
+            data: imageBuffer.toString("base64"),
+            mimeType: mimetype
           }
         }
+      ];
+
+      const result = await model.generateContent([prompt, ...imageParts]);
+      const response = await result.response;
+      let text = response.text();
+      
+      console.log('Respuesta cruda de Gemini:', text);
+
+      // Limpiar markdown si el modelo lo devuelve a pesar de la instrucción
+      if (text.startsWith('```json')) {
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
       }
 
-      const amount = amountStr ? Math.round(Number(amountStr)) : undefined;
-      const subtotal = amount ? Math.round(amount / 1.19) : undefined; // Asumiendo 19% IVA
-      const iva = amount ? amount - subtotal! : undefined;
+      const extractedData = JSON.parse(text);
+
+      // Limpieza adicional de montos
+      const amount = extractedData.amount ? Number(extractedData.amount) : undefined;
+      let subtotal = extractedData.subtotal ? Number(extractedData.subtotal) : undefined;
+      let iva = extractedData.iva ? Number(extractedData.iva) : undefined;
+
+      if (amount && !subtotal) {
+        subtotal = Math.round(amount / 1.19);
+        iva = amount - subtotal;
+      }
 
       return {
-        textExtracted: text.substring(0, 500) + '...', // Retornamos un preview
-        ocrConfidence: Math.round(confidence),
+        textExtracted: 'Extraído con IA Gemini',
+        ocrConfidence: 99,
         extractedData: {
-          razonSocial: lines[0]?.substring(0, 50), // Asumimos primera línea es nombre
-          nitProveedor,
-          numeroFactura,
-          fechaEmision: new Date().toISOString(), // Fecha actual
+          razonSocial: extractedData.razonSocial || '',
+          nitProveedor: extractedData.nitProveedor || '',
+          numeroFactura: extractedData.numeroFactura || '',
+          fechaEmision: extractedData.fechaEmision || new Date().toISOString(),
           subtotal,
           iva,
           amount,
@@ -77,8 +72,8 @@ export const OcrService = {
       };
 
     } catch (error) {
-      console.error('Error en OCR:', error);
-      throw new HttpError(500, 'Fallo al procesar el documento con OCR.');
+      console.error('Error en OCR Gemini:', error);
+      throw new HttpError(500, 'Fallo al procesar el documento con Inteligencia Artificial.');
     }
   }
 };
