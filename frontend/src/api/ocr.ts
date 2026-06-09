@@ -4,7 +4,7 @@ export const extractOcrData = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const { data } = await client.post('/ocr/extract', formData, {
+  const { data } = await client.post('/api/v1/ocr/extract', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   
