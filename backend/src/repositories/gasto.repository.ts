@@ -42,7 +42,7 @@ export const GastoRepository = {
     description?: string;
     tipo: string;
     origen?: string;
-    legalizacionId: number;
+    legalizacionId?: number;
     createdById: number;
     status?: string;
     nitProveedor?: string;
