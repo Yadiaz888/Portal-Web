@@ -10,7 +10,7 @@ export interface CreateGastoDto {
   description?: string;
   tipo: string; // 'RECIBO' | 'FACTURA' | 'OTRO'
   origen?: string; // 'MANUAL' | 'ELECTRONICA' | 'NO_ELECTRONICA'
-  legalizacionId: number;
+  legalizacionId?: number;
   nitProveedor?: string;
   razonSocial?: string;
   numeroFactura?: string;

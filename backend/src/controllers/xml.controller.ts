@@ -11,8 +11,9 @@ export const XmlController = {
     const data = await request.file();
     if (!data) throw new HttpError(400, 'No se recibió ningún archivo XML');
 
-    if (data.mimetype !== 'text/xml' && data.mimetype !== 'application/xml') {
-        throw new HttpError(400, 'El archivo debe ser un XML válido.');
+    // Removemos la verificación estricta de mimetype porque a veces los navegadores envían 'text/plain' o 'application/octet-stream' para XML
+    if (!data.filename.toLowerCase().endsWith('.xml')) {
+        throw new HttpError(400, 'El archivo debe tener extensión .xml');
     }
 
     const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB

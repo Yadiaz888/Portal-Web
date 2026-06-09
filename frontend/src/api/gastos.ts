@@ -36,7 +36,7 @@ export interface CreateGastoPayload {
   description?: string;
   tipo: 'RECIBO' | 'FACTURA' | 'OTRO';
   origen?: 'MANUAL' | 'ELECTRONICA' | 'NO_ELECTRONICA';
-  legalizacionId: number;
+  legalizacionId?: number;
   nitProveedor?: string;
   razonSocial?: string;
   numeroFactura?: string;

@@ -10,13 +10,14 @@ export const OcrService = {
       console.log('Iniciando extracción con Gemini AI...');
       
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      // Utilizamos gemini-2.5-flash-lite que está disponible y sin restricciones de cuota o demanda en esta API key
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
       const prompt = `Analiza esta imagen de una factura, recibo o nota crédito. 
       Extrae la siguiente información y devuélvela ÚNICAMENTE en un formato JSON válido con esta estructura exacta (si no encuentras un dato, déjalo en null o cadena vacía):
       {
-        "razonSocial": "Nombre del proveedor",
-        "nitProveedor": "Número de NIT, sin puntos ni guiones",
+        "razonSocial": "Nombre del proveedor (quita los puntos de las siglas, ej: si dice 'S.A.S.', pon 'SAS')",
+        "nitProveedor": "Número de NIT, SOLO números sin puntos ni comas, y SIN el dígito de verificación final (ej. si dice '901.189.979-5', devuelve '901189979')",
         "numeroFactura": "Número de la factura o nota",
         "fechaEmision": "Fecha en formato YYYY-MM-DD",
         "subtotal": número entero,

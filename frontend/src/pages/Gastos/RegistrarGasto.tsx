@@ -13,8 +13,9 @@ import {
   liquidateGasto, rejectGasto,
   sendGastoToManager, sendGastoToAccountant,
 } from '../../api/gastos';
-import { searchSapFactura } from '../../api/sap';
+import { searchSapFactura, extractXmlData } from '../../api/sap';
 import { extractOcrData } from '../../api/ocr';
+import { uploadGastoArchivo } from '../../api/archivos';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -145,6 +146,20 @@ export default function RegistrarGasto({
     ocrConfidence: '',
   });
 
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+
+  // Create/revoke object URL for file preview
+  useEffect(() => {
+    if (attachedFile) {
+      const url = URL.createObjectURL(attachedFile);
+      setFilePreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setFilePreviewUrl(null);
+    }
+  }, [attachedFile]);
+
   // UI States para OCR / SAP
   const [isSearchingSap, setIsSearchingSap] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
@@ -206,6 +221,7 @@ export default function RegistrarGasto({
     setIsSearchingSap(true); // Reusamos el estado de carga
     try {
       const result = await extractXmlData(file);
+      setAttachedFile(file);
       setForm(prev => ({
         ...prev,
         tipo: 'FACTURA',
@@ -231,6 +247,7 @@ export default function RegistrarGasto({
     try {
       const result = await extractOcrData(file);
       const data = result.extractedData;
+      setAttachedFile(file);
       setForm(prev => ({
         ...prev,
         tipo: 'FACTURA',
@@ -281,18 +298,23 @@ export default function RegistrarGasto({
 
       if (mode === 'create') {
         const legId = defaultLegalizacionId ?? gasto?.legalizacionId;
-        if (!legId) {
-          notify('No se encontró la legalización asociada.', 'error');
-          setLoading(false);
-          return;
-        }
-        saved = await createGasto({ ...payload, legalizacionId: legId });
+        saved = await createGasto({ ...payload, ...(legId ? { legalizacionId: legId } : {}) });
         notify('Gasto registrado correctamente.', 'success');
       } else {
         if (!gasto) return;
         saved = await updateGasto(gasto.id, payload);
         notify('Gasto actualizado correctamente.', 'success');
       }
+
+      if (attachedFile) {
+        try {
+          await uploadGastoArchivo(saved.id, attachedFile);
+          notify('Archivo adjuntado y guardado correctamente.', 'success');
+        } catch (err: any) {
+          notify('Gasto guardado, pero falló la subida del archivo adjunto.', 'error');
+        }
+      }
+
       setGasto(saved);
       onSuccess?.(saved);
     } catch (err: any) {
@@ -376,15 +398,15 @@ export default function RegistrarGasto({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <OrigenOption 
                 icon={<UploadCloud size={20} />} title="Factura Electrónica" desc="Obtener datos directo de SAP" 
-                active={form.origen === 'ELECTRONICA'} onClick={() => setField('origen', 'ELECTRONICA')} 
+                active={form.origen === 'ELECTRONICA'} onClick={() => { setField('origen', 'ELECTRONICA'); setAttachedFile(null); setSapSearchTerm(''); }} 
               />
               <OrigenOption 
-                icon={<ScanLine size={20} />} title="Factura Física (OCR)" desc="Subir foto y extraer datos con IA" 
-                active={form.origen === 'NO_ELECTRONICA'} onClick={() => setField('origen', 'NO_ELECTRONICA')} 
+                icon={<ScanLine size={20} />} title="Factura Física (OCR)" desc="Subir PDF/foto y extraer con IA" 
+                active={form.origen === 'NO_ELECTRONICA'} onClick={() => { setField('origen', 'NO_ELECTRONICA'); setAttachedFile(null); setSapSearchTerm(''); }} 
               />
               <OrigenOption 
                 icon={<FileText size={20} />} title="Registro Manual" desc="Digitar los datos manualmente" 
-                active={form.origen === 'MANUAL'} onClick={() => setField('origen', 'MANUAL')} 
+                active={form.origen === 'MANUAL'} onClick={() => { setField('origen', 'MANUAL'); setAttachedFile(null); setSapSearchTerm(''); }} 
               />
             </div>
           </div>
@@ -395,64 +417,32 @@ export default function RegistrarGasto({
           {/* ── Columna Izquierda: Asistentes (SAP/OCR) y Formulario ── */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Buscador SAP o XML */}
+            {/* Buscador SAP */}
             {(form.origen === 'ELECTRONICA' && (mode === 'create' || form.sapDocId)) && (
               <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5">
                 <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2 text-sm">
                   <FileText size={16} />
-                  Búsqueda por NIT o XML Electrónico
+                  Búsqueda Electrónica en SAP
                 </div>
                 {mode === 'create' && !form.sapDocId ? (
-                  <>
-                    <div className="flex gap-3">
-                      <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input
-                          type="text"
-                          placeholder="Ej. 900.123.456-7"
-                          value={sapSearchTerm}
-                          onChange={e => setSapSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
-                        />
-                      </div>
-                      <button 
-                        onClick={handleSapSearch} disabled={isSearchingSap || !sapSearchTerm}
-                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
-                      >
-                        {isSearchingSap ? <Loader2 size={16} className="animate-spin" /> : 'Buscar'}
-                      </button>
+                  <div className="flex gap-3">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <input
+                        type="text"
+                        placeholder="Ej. 900.123.456-7 o NCTR743"
+                        value={sapSearchTerm}
+                        onChange={e => setSapSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                      />
                     </div>
-
-                    <div className="mt-4 flex items-center gap-4">
-                      <div className="flex-1 border-t border-blue-100"></div>
-                      <span className="text-xs text-blue-400 font-medium uppercase">O SUBE EL XML</span>
-                      <div className="flex-1 border-t border-blue-100"></div>
-                    </div>
-
-                    <div className="mt-4">
-                      <label className="border-2 border-dashed border-blue-200 bg-white rounded-xl p-4 flex flex-col items-center justify-center hover:bg-blue-50/50 transition-colors cursor-pointer text-center">
-                        <input type="file" className="hidden" accept=".xml,text/xml" onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            handleXmlUpload(e.target.files[0]);
-                          }
-                        }} />
-                        {isSearchingSap ? (
-                          <div className="flex items-center gap-2 text-blue-600">
-                            <Loader2 size={20} className="animate-spin" />
-                            <span className="text-sm font-medium">Procesando archivo XML...</span>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2">
-                              <FileText size={20} />
-                            </div>
-                            <span className="text-sm font-medium text-gray-700">Subir XML UBL de la DIAN</span>
-                            <span className="text-xs text-gray-400 mt-1">Extrae automáticamente NIT, Total y Factura</span>
-                          </>
-                        )}
-                      </label>
-                    </div>
-                  </>
+                    <button 
+                      onClick={handleSapSearch} disabled={isSearchingSap || !sapSearchTerm}
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isSearchingSap ? <Loader2 size={16} className="animate-spin" /> : 'Buscar'}
+                    </button>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-100/50 px-3 py-2 rounded-lg mt-2 border border-blue-100 font-medium">
                     <FileCheck size={16} />
@@ -469,32 +459,57 @@ export default function RegistrarGasto({
                   <ScanLine size={16} />
                   Extracción por IA (OCR)
                 </div>
-                <label className="border-2 border-dashed border-purple-200 bg-white rounded-xl p-8 text-center hover:bg-purple-50/30 transition-colors cursor-pointer block">
-                  <input type="file" className="hidden" accept="image/jpeg,image/png" onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleOcrUpload(e.target.files[0]);
-                    }
-                  }} />
-                  {isProcessingOcr ? (
-                    <div className="flex flex-col items-center text-purple-600">
-                      <Loader2 size={32} className="animate-spin mb-3" />
-                      <span className="text-sm font-medium">Analizando documento con Inteligencia Artificial...</span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center text-gray-500">
-                      <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-3">
-                        <Plus size={24} />
+                {attachedFile ? (
+                  <div className="border-2 border-green-200 bg-green-50/50 rounded-xl p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={20} />
                       </div>
-                      <span className="text-sm font-medium text-gray-700 mb-1">Sube la foto o escáner de la factura física</span>
-                      <span className="text-xs text-gray-400">Solo JPG o PNG hasta 5MB.</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-green-800 truncate">{attachedFile.name}</p>
+                        <p className="text-xs text-green-600">{(attachedFile.size / 1024).toFixed(1)} KB · Se adjuntará al guardar</p>
+                      </div>
+                      <button type="button" onClick={() => setAttachedFile(null)} className="text-gray-400 hover:text-red-500 transition-colors p-1">
+                        <XCircle size={18} />
+                      </button>
                     </div>
-                  )}
-                </label>
-                {form.ocrConfidence && (
-                  <div className="mt-3 flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-purple-100">
-                    <span className="text-xs font-medium text-purple-800">Confianza de IA:</span>
-                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{form.ocrConfidence}% Precisión</span>
+                    {form.ocrConfidence && (
+                      <div className="mt-3 flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-green-200">
+                        <span className="text-xs font-medium text-green-800">Confianza de IA:</span>
+                        <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{form.ocrConfidence}% Precisión</span>
+                      </div>
+                    )}
+                    <label className="mt-3 flex items-center justify-center gap-2 text-xs text-purple-600 font-medium cursor-pointer hover:underline">
+                      <input type="file" className="hidden" accept="image/jpeg,image/png,application/pdf" onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) handleOcrUpload(e.target.files[0]);
+                      }} />
+                      Cambiar archivo
+                    </label>
                   </div>
+                ) : (
+                  <>
+                    <label className="border-2 border-dashed border-purple-200 bg-white rounded-xl p-8 text-center hover:bg-purple-50/30 transition-colors cursor-pointer block">
+                      <input type="file" className="hidden" accept="image/jpeg,image/png,application/pdf" onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleOcrUpload(e.target.files[0]);
+                        }
+                      }} />
+                      {isProcessingOcr ? (
+                        <div className="flex flex-col items-center text-purple-600">
+                          <Loader2 size={32} className="animate-spin mb-3" />
+                          <span className="text-sm font-medium">Analizando documento con Inteligencia Artificial...</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center text-gray-500">
+                          <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-3">
+                            <Plus size={24} />
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 mb-1">Sube el PDF o foto de la factura física</span>
+                          <span className="text-xs text-gray-400">PDF, JPG o PNG hasta 5MB. Se adjuntará automáticamente al guardar.</span>
+                        </div>
+                      )}
+                    </label>
+                  </>
                 )}
               </div>
             )}
@@ -570,11 +585,31 @@ export default function RegistrarGasto({
 
           {/* ── Columna Derecha: Archivo + Flujo ── */}
           <div className="space-y-5">
-            {/* Soporte físico (Solo para manual o física) */}
-            {form.origen !== 'ELECTRONICA' && (
-              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                <h4 className="text-sm font-bold text-gray-700 mb-3">Documento Soporte</h4>
-                <FileDropZone label="Adjuntar soporte" buttonLabel="Cargar PDF/JPG" />
+            {/* Archivo adjunto (preview del archivo cargado desde OCR) */}
+            {attachedFile && filePreviewUrl && (
+              <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-gray-700">Archivo Adjunto</h4>
+                  <button type="button" onClick={() => setAttachedFile(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <XCircle size={16} />
+                  </button>
+                </div>
+                <div className="p-3">
+                  {attachedFile.type.startsWith('image/') ? (
+                    <img src={filePreviewUrl} alt="Preview" className="w-full rounded-lg border border-gray-200 max-h-64 object-contain bg-gray-50" />
+                  ) : attachedFile.type === 'application/pdf' ? (
+                    <iframe src={filePreviewUrl} title="PDF Preview" className="w-full h-64 rounded-lg border border-gray-200" />
+                  ) : (
+                    <div className="flex items-center justify-center h-32 bg-gray-50 rounded-lg border border-gray-200">
+                      <FileText size={32} className="text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="px-4 py-2 bg-green-50 border-t border-green-100 flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-green-600 shrink-0" />
+                  <p className="text-xs text-green-700 font-medium truncate">{attachedFile.name}</p>
+                  <span className="text-xs text-green-500 ml-auto whitespace-nowrap">{(attachedFile.size / 1024).toFixed(1)} KB</span>
+                </div>
               </div>
             )}
 

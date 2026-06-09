@@ -131,8 +131,8 @@ model Gasto {
   iva            Float?         // Valor del IVA
   sapDocId       String?        // ID del documento en SAP (si aplica)
   ocrConfidence  Float?         // Nivel de confianza del OCR (0-100)
-  legalizacionId Int
-  legalizacion   Legalizacion   @relation(fields: [legalizacionId], references: [id])
+  legalizacionId Int?
+  legalizacion   Legalizacion?   @relation(fields: [legalizacionId], references: [id])
   createdById    Int
   createdBy      User           @relation("GastoCreatedBy", fields: [createdById], references: [id])
   archivos       GastoArchivo[]

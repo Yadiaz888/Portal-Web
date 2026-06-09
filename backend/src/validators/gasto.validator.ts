@@ -16,7 +16,7 @@ export const createGastoSchema = z.object({
   origen: z.enum(['MANUAL', 'ELECTRONICA', 'NO_ELECTRONICA'], {
     errorMap: () => ({ message: 'El origen debe ser MANUAL, ELECTRONICA o NO_ELECTRONICA' }),
   }).optional().default('MANUAL'),
-  legalizacionId: z.number().int().positive('El ID de legalización es requerido'),
+  legalizacionId: z.number().int().positive().optional(),
   nitProveedor: z.string().optional(),
   razonSocial: z.string().optional(),
   numeroFactura: z.string().optional(),
