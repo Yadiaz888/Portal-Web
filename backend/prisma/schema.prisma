@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String?
+  roleId    Int
+  role      Role      @relation(fields: [roleId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  anticiposCreated  Anticipo[]        @relation("AnticipoCreatedBy")
+  anticiposApproved Anticipo[]        @relation("AnticipoApprovedBy")
+  facturas          Factura[]         @relation("FacturaCreatedBy")
+  viaticos          Viatico[]         @relation("ViaticoCreatedBy")
+  legalizaciones    Legalizacion[]    @relation("LegalizacionCreatedBy")
+  gastos            Gasto[]           @relation("GastoCreatedBy")
+  activityLogs      ActivityLog[]     @relation("ActivityLogUser")
+  stateTransitions  StateTransition[] @relation("StateTransitionUser")
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  users       User[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id       Int              @id @default(autoincrement())
+  action   String
+  resource String
+  roles    RolePermission[]
+
+  @@unique([action, resource])
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+}
+
+model Anticipo {
+  id           Int       @id @default(autoincrement())
+  amount       Float
+  currency     String    @default("COP")
+  description  String?
+  status       String    @default("PENDING")
+  createdById  Int
+  createdBy    User      @relation("AnticipoCreatedBy", fields: [createdById], references: [id])
+  approvedById Int?
+  approvedBy   User?     @relation("AnticipoApprovedBy", fields: [approvedById], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+}
+
+model Factura {
+  id            Int       @id @default(autoincrement())
+  amount        Float
+  currency      String    @default("COP")
+  description   String?
+  vendor        String?
+  invoiceNumber String?
+  status        String    @default("PENDING")
+  createdById   Int
+  createdBy     User      @relation("FacturaCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+}
+
+model Viatico {
+  id          Int       @id @default(autoincrement())
+  description String
+  amount      Float
+  destination String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String    @default("PENDING")
+  createdById Int
+  createdBy   User      @relation("ViaticoCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Legalizacion {
+  id          Int       @id @default(autoincrement())
+  description String
+  amount      Float
+  status      String    @default("PENDING")
+  createdById Int
+  createdBy   User      @relation("LegalizacionCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  gastos      Gasto[]
+}
+
+model Gasto {
+  id             Int            @id @default(autoincrement())
+  amount         Float
+  currency       String         @default("COP")
+  description    String?
+  tipo           String // e.g., 'RECIBO', 'FACTURA', 'OTRO'
+  status         String         @default("CREADO") // CREADO | ENVIADO_A_JEFE | ENVIADO_A_CONTABILIDAD | LIQUIDADO | RECHAZADO
+  legalizacionId Int
+  legalizacion   Legalizacion   @relation(fields: [legalizacionId], references: [id])
+  createdById    Int
+  createdBy      User           @relation("GastoCreatedBy", fields: [createdById], references: [id])
+  archivos       GastoArchivo[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+}
+
+model GastoArchivo {
+  id          Int      @id @default(autoincrement())
+  gastoId     Int
+  gasto       Gasto    @relation(fields: [gastoId], references: [id])
+  filename    String
+  mimetype    String
+  size        Int
+  storagePath String
+  createdAt   DateTime @default(now())
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation("ActivityLogUser", fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  Int?
+  details   String?
+  timestamp DateTime @default(now())
+}
+
+model StateTransition {
+  id          Int      @id @default(autoincrement())
+  entity      String
+  entityId    Int
+  fromState   String
+  toState     String
+  changedById Int
+  changedBy   User     @relation("StateTransitionUser", fields: [changedById], references: [id])
+  changedAt   DateTime @default(now())
+}
