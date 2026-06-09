@@ -121,7 +121,16 @@ model Gasto {
   currency       String         @default("COP")
   description    String?
   tipo           String // e.g., 'RECIBO', 'FACTURA', 'OTRO'
+  origen         String         @default("MANUAL") // MANUAL | ELECTRONICA | NO_ELECTRONICA
   status         String         @default("CREADO") // CREADO | ENVIADO_A_JEFE | ENVIADO_A_CONTABILIDAD | LIQUIDADO | RECHAZADO
+  nitProveedor   String?        // NIT del proveedor
+  razonSocial    String?        // Razón social del proveedor
+  numeroFactura  String?        // Número de la factura
+  fechaEmision   DateTime?      // Fecha de emisión de la factura
+  subtotal       Float?         // Subtotal antes de IVA
+  iva            Float?         // Valor del IVA
+  sapDocId       String?        // ID del documento en SAP (si aplica)
+  ocrConfidence  Float?         // Nivel de confianza del OCR (0-100)
   legalizacionId Int
   legalizacion   Legalizacion   @relation(fields: [legalizacionId], references: [id])
   createdById    Int

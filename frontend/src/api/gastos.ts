@@ -13,10 +13,19 @@ export interface GastoItem {
   currency: string;
   description?: string;
   tipo: 'RECIBO' | 'FACTURA' | 'OTRO';
+  origen: 'MANUAL' | 'ELECTRONICA' | 'NO_ELECTRONICA';
   status: GastoStatus;
   legalizacionId: number;
   createdById: number;
   createdBy?: { id: number; name?: string; email: string };
+  nitProveedor?: string;
+  razonSocial?: string;
+  numeroFactura?: string;
+  fechaEmision?: string;
+  subtotal?: number;
+  iva?: number;
+  sapDocId?: string;
+  ocrConfidence?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,7 +35,16 @@ export interface CreateGastoPayload {
   currency?: string;
   description?: string;
   tipo: 'RECIBO' | 'FACTURA' | 'OTRO';
+  origen?: 'MANUAL' | 'ELECTRONICA' | 'NO_ELECTRONICA';
   legalizacionId: number;
+  nitProveedor?: string;
+  razonSocial?: string;
+  numeroFactura?: string;
+  fechaEmision?: string;
+  subtotal?: number;
+  iva?: number;
+  sapDocId?: string;
+  ocrConfidence?: number;
 }
 
 export interface UpdateGastoPayload {
@@ -34,6 +52,12 @@ export interface UpdateGastoPayload {
   currency?: string;
   description?: string;
   tipo?: 'RECIBO' | 'FACTURA' | 'OTRO';
+  nitProveedor?: string;
+  razonSocial?: string;
+  numeroFactura?: string;
+  fechaEmision?: string;
+  subtotal?: number;
+  iva?: number;
 }
 
 // ─── CRUD ─────────────────────────────────────────────────────────────────────

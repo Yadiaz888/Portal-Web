@@ -1,16 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../lib/prisma.js';
-import { AuthenticatedRequest } from '../types/request.types.js';
 import { HttpError } from '../errors/httpError.js';
+import { supabaseClient, STORAGE_BUCKET } from '../lib/supabase.js';
 import path from 'path';
-import fs from 'fs';
-
-const UPLOADS_DIR = path.resolve('uploads');
-
-// Ensure uploads directory exists on startup
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
 
 export const UploadController = {
   /**
@@ -47,8 +39,19 @@ export const UploadController = {
     const fileBuffer = Buffer.concat(chunks);
     const ext = path.extname(data.filename) || '.bin';
     const storedName = `gasto_${id}_${Date.now()}${ext}`;
-    const storagePath = path.join(UPLOADS_DIR, storedName);
-    fs.writeFileSync(storagePath, fileBuffer);
+    
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+      .from(STORAGE_BUCKET)
+      .upload(storedName, fileBuffer, {
+        contentType: data.mimetype,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      throw new HttpError(500, 'Error al subir el archivo al almacenamiento en la nube.');
+    }
 
     const archivo = await prisma.gastoArchivo.create({
       data: {
@@ -56,7 +59,7 @@ export const UploadController = {
         filename: data.filename,
         mimetype: data.mimetype,
         size: totalSize,
-        storagePath: storedName,
+        storagePath: uploadData.path, // We store the path inside the bucket
       },
     });
 
@@ -98,13 +101,20 @@ export const UploadController = {
     const archivo = await prisma.gastoArchivo.findUnique({ where: { id: Number(archivoId) } });
     if (!archivo) throw new HttpError(404, 'Archivo no encontrado');
 
-    const filePath = path.join(UPLOADS_DIR, archivo.storagePath);
-    if (!fs.existsSync(filePath)) throw new HttpError(404, 'Archivo en disco no encontrado');
+    const { data: fileData, error } = await supabaseClient.storage
+      .from(STORAGE_BUCKET)
+      .download(archivo.storagePath);
 
-    const stream = fs.createReadStream(filePath);
+    if (error || !fileData) {
+      throw new HttpError(404, 'Archivo en la nube no encontrado');
+    }
+
+    const arrayBuffer = await fileData.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     reply.header('Content-Disposition', `attachment; filename="${archivo.filename}"`);
     reply.header('Content-Type', archivo.mimetype);
-    return reply.send(stream);
+    return reply.send(buffer);
   },
 
   /**
@@ -116,8 +126,14 @@ export const UploadController = {
     const archivo = await prisma.gastoArchivo.findUnique({ where: { id: Number(archivoId) } });
     if (!archivo) throw new HttpError(404, 'Archivo no encontrado');
 
-    const filePath = path.join(UPLOADS_DIR, archivo.storagePath);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    // Remove from Supabase Storage
+    const { error } = await supabaseClient.storage
+      .from(STORAGE_BUCKET)
+      .remove([archivo.storagePath]);
+
+    if (error) {
+      console.warn('Could not delete file from Supabase storage:', error);
+    }
 
     await prisma.gastoArchivo.delete({ where: { id: Number(archivoId) } });
     return reply.code(204).send();

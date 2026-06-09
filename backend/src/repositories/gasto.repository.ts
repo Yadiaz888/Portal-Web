@@ -41,9 +41,18 @@ export const GastoRepository = {
     currency?: string;
     description?: string;
     tipo: string;
+    origen?: string;
     legalizacionId: number;
     createdById: number;
     status?: string;
+    nitProveedor?: string;
+    razonSocial?: string;
+    numeroFactura?: string;
+    fechaEmision?: Date;
+    subtotal?: number;
+    iva?: number;
+    sapDocId?: string;
+    ocrConfidence?: number;
   }) {
     return prisma.gasto.create({
       data: {
@@ -51,9 +60,18 @@ export const GastoRepository = {
         currency: data.currency ?? 'COP',
         description: data.description,
         tipo: data.tipo,
+        origen: data.origen ?? 'MANUAL',
         legalizacionId: data.legalizacionId,
         createdById: data.createdById,
         status: data.status ?? 'CREADO',
+        nitProveedor: data.nitProveedor,
+        razonSocial: data.razonSocial,
+        numeroFactura: data.numeroFactura,
+        fechaEmision: data.fechaEmision,
+        subtotal: data.subtotal,
+        iva: data.iva,
+        sapDocId: data.sapDocId,
+        ocrConfidence: data.ocrConfidence,
       },
       include: {
         createdBy: { select: { id: true, name: true, email: true } },

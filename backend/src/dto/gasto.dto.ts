@@ -9,7 +9,16 @@ export interface CreateGastoDto {
   currency?: string;
   description?: string;
   tipo: string; // 'RECIBO' | 'FACTURA' | 'OTRO'
+  origen?: string; // 'MANUAL' | 'ELECTRONICA' | 'NO_ELECTRONICA'
   legalizacionId: number;
+  nitProveedor?: string;
+  razonSocial?: string;
+  numeroFactura?: string;
+  fechaEmision?: string; // ISO date string
+  subtotal?: number;
+  iva?: number;
+  sapDocId?: string;
+  ocrConfidence?: number;
 }
 
 /** Datos opcionales para actualizar un gasto existente. */
@@ -18,4 +27,10 @@ export interface UpdateGastoDto {
   currency?: string;
   description?: string;
   tipo?: string;
+  nitProveedor?: string;
+  razonSocial?: string;
+  numeroFactura?: string;
+  fechaEmision?: string;
+  subtotal?: number;
+  iva?: number;
 }

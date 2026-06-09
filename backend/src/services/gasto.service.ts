@@ -33,9 +33,18 @@ export const GastoService = {
       currency: data.currency ?? 'COP',
       description: data.description,
       tipo: data.tipo,
+      origen: data.origen ?? 'MANUAL',
       legalizacionId: data.legalizacionId,
       createdById: userId,
       status: 'CREADO',
+      nitProveedor: data.nitProveedor,
+      razonSocial: data.razonSocial,
+      numeroFactura: data.numeroFactura,
+      fechaEmision: data.fechaEmision ? new Date(data.fechaEmision) : undefined,
+      subtotal: data.subtotal,
+      iva: data.iva,
+      sapDocId: data.sapDocId,
+      ocrConfidence: data.ocrConfidence,
     });
 
     // Registro inicial de trazabilidad
@@ -47,7 +56,7 @@ export const GastoService = {
       changedById: userId,
     });
 
-    await logActivity(userId, 'CREATE', 'Gasto', item.id, { toState: 'CREADO' });
+    await logActivity(userId, 'CREATE', 'Gasto', item.id, { toState: 'CREADO', origen: data.origen ?? 'MANUAL' });
     return item;
   },
 

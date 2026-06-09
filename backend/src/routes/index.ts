@@ -7,6 +7,8 @@ import { registerLegalizacionRoutes } from './legalizacion.routes.js';
 import { registerGastoRoutes } from './gasto.routes.js';
 import { registerDashboardRoutes } from './dashboard.routes.js';
 import { registerUserRoutes } from './user.routes.js';
+import { registerSapRoutes } from './sap.routes.js';
+import { registerOcrRoutes } from './ocr.routes.js';
 
 export const registerRoutes = (app: FastifyInstance) => {
   app.get('/health', async () => ({ status: 'ok' }));
@@ -19,4 +21,7 @@ export const registerRoutes = (app: FastifyInstance) => {
   app.register(registerGastoRoutes, { prefix: '/api/v1/gastos' });
   app.register(registerDashboardRoutes, { prefix: '/api/v1/dashboard' });
   app.register(registerUserRoutes, { prefix: '/api/v1/users' });
+  app.register(registerSapRoutes, { prefix: '/api/v1/sap' });
+  app.register(registerOcrRoutes, { prefix: '/api/v1/ocr' });
 };
+

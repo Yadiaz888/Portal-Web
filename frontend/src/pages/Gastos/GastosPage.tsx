@@ -108,6 +108,15 @@ export default function GastosPage() {
       ),
     },
     {
+      key: 'origen' as any,
+      header: 'Origen',
+      render: row => (
+        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+          {row.origen === 'ELECTRONICA' ? 'Electrónica' : row.origen === 'NO_ELECTRONICA' ? 'Física (OCR)' : 'Manual'}
+        </span>
+      ),
+    },
+    {
       key: 'amount',
       header: 'Monto',
       render: row => (

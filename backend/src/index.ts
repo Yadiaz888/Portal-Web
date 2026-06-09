@@ -6,6 +6,7 @@ import multipart from '@fastify/multipart';
 import { loadEnv } from './config/env.js';
 import { registerRoutes } from './routes/index.js';
 import { errorHandler } from './errors/errorHandler.js';
+import { initStorage } from './lib/supabase.js';
 
 loadEnv();
 
@@ -60,6 +61,10 @@ const start = async () => {
   try {
     const port = Number(process.env.PORT) || 4000;
     await server.listen({ port, host: '0.0.0.0' });
+    
+    // Initialize storage
+    await initStorage();
+
     server.log.info(`🚀 Server listening on http://localhost:${port}`);
     server.log.info(`📖 Swagger UI available at http://localhost:${port}/docs`);
   } catch (err) {

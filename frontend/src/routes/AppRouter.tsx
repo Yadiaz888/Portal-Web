@@ -5,7 +5,7 @@ import AnticiposPage from '../pages/Anticipos/AnticiposPage';
 import AnticipoDetallePage from '../pages/Anticipos/AnticipoDetallePage';
 import LegalizacionPage from '../pages/Legalizacion/LegalizacionPage';
 import LegalizacionDetalle from '../pages/Legalizacion/LegalizacionDetalle';
-import GastosPage from '../pages/Facturas/GastosPage';
+import GastosPage from '../pages/Gastos/GastosPage';
 import ConfiguracionesPage from '../pages/Configuraciones/ConfiguracionesPage';
 import LoginPage from '../pages/Auth/LoginPage';
 import { useAuth } from '../context/AuthContext';
