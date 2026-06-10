@@ -9,14 +9,14 @@ export const registerSapRoutes = (app: FastifyInstance) => {
   app.get('/facturas', {
     schema: {
       tags: ['SAP'],
-      description: 'Busca una factura en SAP por NIT',
+      description: 'Busca facturas en SAP por NIT y/o Fecha de Emisión',
       security: [{ bearerAuth: [] }],
       querystring: {
         type: 'object',
         properties: {
           nit: { type: 'string' },
+          fechaEmision: { type: 'string' },
         },
-        required: ['nit'],
       },
     },
   }, SapController.searchFacturas);

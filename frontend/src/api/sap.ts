@@ -1,7 +1,10 @@
 import client from './client';
 
-export const searchSapFactura = async (nit: string) => {
-  const { data } = await client.get(`/api/v1/sap/facturas`, { params: { nit } });
+export const searchSapFactura = async (nit?: string, fechaEmision?: string) => {
+  const params: any = {};
+  if (nit) params.nit = nit;
+  if (fechaEmision) params.fechaEmision = fechaEmision;
+  const { data } = await client.get(`/api/v1/sap/facturas`, { params });
   return data.data;
 };
 

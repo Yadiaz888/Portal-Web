@@ -161,10 +161,19 @@ export default function GastosPage() {
     else { setFormMode('create'); setSelected(null); }
   };
 
-  const handleSuccess = (updated: GastoItem) => {
+  const handleSuccess = (updated: GastoItem | GastoItem[]) => {
     setGastos(prev => {
-      const exists = prev.find(g => g.id === updated.id);
-      return exists ? prev.map(g => g.id === updated.id ? updated : g) : [updated, ...prev];
+      let next = [...prev];
+      const items = Array.isArray(updated) ? updated : [updated];
+      for (const item of items) {
+        const exists = next.find(g => g.id === item.id);
+        if (exists) {
+          next = next.map(g => g.id === item.id ? item : g);
+        } else {
+          next = [item, ...next];
+        }
+      }
+      return next;
     });
     if (formMode === 'create') {
       setFormMode('list');

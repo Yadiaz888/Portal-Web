@@ -3,52 +3,53 @@ import { HttpError } from '../errors/httpError.js';
 
 export const OcrService = {
   /**
-   * Extrae texto y datos de una imagen usando Google Gemini 1.5 Flash
+   * Extrae texto y datos de una imagen usando Google Gemini.
    */
   async extractDataFromImage(imageBuffer: Buffer, mimetype: string) {
     try {
-      console.log('Iniciando extracción con Gemini AI...');
-      
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-      // Utilizamos gemini-2.5-flash-lite que está disponible y sin restricciones de cuota o demanda en esta API key
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      console.log('Iniciando extraccion con Gemini AI...');
 
-      const prompt = `Analiza esta imagen de una factura, recibo o nota crédito. 
-      Extrae la siguiente información y devuélvela ÚNICAMENTE en un formato JSON válido con esta estructura exacta (si no encuentras un dato, déjalo en null o cadena vacía):
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+      // Utilizamos gemini-2.5-flash-lite que esta disponible para esta API key.
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+
+      const prompt = `Analiza esta imagen de una factura, recibo o nota credito.
+      Extrae la siguiente informacion y devuelvela UNICAMENTE en un formato JSON valido con esta estructura exacta (si no encuentras un dato, dejalo en null o cadena vacia):
       {
         "razonSocial": "Nombre del proveedor (quita los puntos de las siglas, ej: si dice 'S.A.S.', pon 'SAS')",
-        "nitProveedor": "Número de NIT, SOLO números sin puntos ni comas, y SIN el dígito de verificación final (ej. si dice '901.189.979-5', devuelve '901189979')",
-        "numeroFactura": "Número de la factura o nota",
+        "nitProveedor": "Numero de NIT, SOLO numeros sin puntos ni comas, y SIN el digito de verificacion final (ej. si dice '901.189.979-5', devuelve '901189979')",
+        "numeroFactura": "Numero de la factura o nota",
         "fechaEmision": "Fecha en formato YYYY-MM-DD",
-        "subtotal": número entero,
-        "iva": número entero,
-        "amount": número entero (Total)
+        "subtotal": numero entero,
+        "iva": numero entero,
+        "amount": numero entero (Total),
+        "description": "Concepto o descripcion del gasto en 1 o 2 frases. Si el documento trae un concepto literal, usalo. Si no lo trae, redacta una descripcion coherente con el proveedor, productos/servicios visibles y valor de la factura."
       }
       NO devuelvas comillas invertidas (\`\`\`) ni texto adicional, SOLO el JSON puro.`;
 
       const imageParts = [
         {
           inlineData: {
-            data: imageBuffer.toString("base64"),
-            mimeType: mimetype
-          }
-        }
+            data: imageBuffer.toString('base64'),
+            mimeType: mimetype,
+          },
+        },
       ];
 
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
       let text = response.text();
-      
+
       console.log('Respuesta cruda de Gemini:', text);
 
-      // Limpiar markdown si el modelo lo devuelve a pesar de la instrucción
+      // Limpiar markdown si el modelo lo devuelve a pesar de la instruccion.
       if (text.startsWith('```json')) {
         text = text.replace(/```json/g, '').replace(/```/g, '').trim();
       }
 
       const extractedData = JSON.parse(text);
 
-      // Limpieza adicional de montos
+      // Limpieza adicional de montos.
       const amount = extractedData.amount ? Number(extractedData.amount) : undefined;
       let subtotal = extractedData.subtotal ? Number(extractedData.subtotal) : undefined;
       let iva = extractedData.iva ? Number(extractedData.iva) : undefined;
@@ -59,7 +60,7 @@ export const OcrService = {
       }
 
       return {
-        textExtracted: 'Extraído con IA Gemini',
+        textExtracted: 'Extraido con IA Gemini',
         ocrConfidence: 99,
         extractedData: {
           razonSocial: extractedData.razonSocial || '',
@@ -69,12 +70,12 @@ export const OcrService = {
           subtotal,
           iva,
           amount,
-        }
+          description: extractedData.description || '',
+        },
       };
-
     } catch (error) {
       console.error('Error en OCR Gemini:', error);
       throw new HttpError(500, 'Fallo al procesar el documento con Inteligencia Artificial.');
     }
-  }
+  },
 };

@@ -100,10 +100,34 @@ function ProgressTimeline({ status }: { status: GastoStatus }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+interface GastoFormState {
+  id: string;
+  form: {
+    tipo: 'RECIBO' | 'FACTURA' | 'OTRO';
+    origen: 'MANUAL' | 'ELECTRONICA' | 'NO_ELECTRONICA';
+    amount: string;
+    currency: string;
+    description: string;
+    nitProveedor: string;
+    razonSocial: string;
+    numeroFactura: string;
+    fechaEmision: string;
+    subtotal: string;
+    iva: string;
+    sapDocId: string;
+    ocrConfidence: string;
+  };
+  attachedFile: File | null;
+  filePreviewUrl: string | null;
+  sapSearchTerm: string;
+  sapSearchFecha: string;
+  sapResults: any[];
+}
+
 interface RegistrarGastoProps {
   mode?: 'create' | 'view' | 'edit';
   initialData?: GastoItem | null;
-  onSuccess?: (gasto: GastoItem) => void;
+  onSuccess?: (gastos: GastoItem | GastoItem[]) => void;
   onCancel?: () => void;
   defaultLegalizacionId?: number;
 }
@@ -130,91 +154,141 @@ export default function RegistrarGasto({
   const currentStatus: GastoStatus = gasto?.status ?? 'CREADO';
   const isCreator = gasto?.createdById === currentUserId;
 
-  const [form, setForm] = useState({
-    tipo: 'FACTURA' as 'RECIBO' | 'FACTURA' | 'OTRO',
-    origen: 'MANUAL' as 'MANUAL' | 'ELECTRONICA' | 'NO_ELECTRONICA',
-    amount: '',
-    currency: 'COP',
-    description: '',
-    nitProveedor: '',
-    razonSocial: '',
-    numeroFactura: '',
-    fechaEmision: '',
-    subtotal: '',
-    iva: '',
-    sapDocId: '',
-    ocrConfidence: '',
+  const createEmptyForm = (): GastoFormState => ({
+    id: Math.random().toString(36).substring(7),
+    form: {
+      tipo: 'FACTURA',
+      origen: 'ELECTRONICA',
+      amount: '',
+      currency: 'COP',
+      description: '',
+      nitProveedor: '',
+      razonSocial: '',
+      numeroFactura: '',
+      fechaEmision: '',
+      subtotal: '',
+      iva: '',
+      sapDocId: '',
+      ocrConfidence: '',
+    },
+    attachedFile: null,
+    filePreviewUrl: null,
+    sapSearchTerm: '',
+    sapSearchFecha: '',
+    sapResults: [],
   });
 
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
-  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [formsList, setFormsList] = useState<GastoFormState[]>([createEmptyForm()]);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  // Create/revoke object URL for file preview
-  useEffect(() => {
-    if (attachedFile) {
-      const url = URL.createObjectURL(attachedFile);
-      setFilePreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setFilePreviewUrl(null);
-    }
-  }, [attachedFile]);
+  const currentFormState = formsList[activeIndex] || formsList[0];
+  const form = currentFormState.form;
+  const attachedFile = currentFormState.attachedFile;
+  const filePreviewUrl = currentFormState.filePreviewUrl;
+  const sapSearchTerm = currentFormState.sapSearchTerm;
+  const sapSearchFecha = currentFormState.sapSearchFecha;
+  const sapResults = currentFormState.sapResults;
 
-  // UI States para OCR / SAP
   const [isSearchingSap, setIsSearchingSap] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
-  const [sapSearchTerm, setSapSearchTerm] = useState('');
 
   useEffect(() => {
     if (initialData) {
       setGasto(initialData);
-      setForm({
-        tipo: initialData.tipo,
-        origen: initialData.origen,
-        amount: String(initialData.amount),
-        currency: initialData.currency ?? 'COP',
-        description: initialData.description ?? '',
-        nitProveedor: initialData.nitProveedor ?? '',
-        razonSocial: initialData.razonSocial ?? '',
-        numeroFactura: initialData.numeroFactura ?? '',
-        fechaEmision: initialData.fechaEmision ? new Date(initialData.fechaEmision).toISOString().split('T')[0] : '',
-        subtotal: initialData.subtotal ? String(initialData.subtotal) : '',
-        iva: initialData.iva ? String(initialData.iva) : '',
-        sapDocId: initialData.sapDocId ?? '',
-        ocrConfidence: initialData.ocrConfidence ? String(initialData.ocrConfidence) : '',
-      });
+      setFormsList([{
+        id: 'edit-1',
+        form: {
+          tipo: initialData.tipo,
+          origen: initialData.origen,
+          amount: String(initialData.amount),
+          currency: initialData.currency ?? 'COP',
+          description: initialData.description ?? '',
+          nitProveedor: initialData.nitProveedor ?? '',
+          razonSocial: initialData.razonSocial ?? '',
+          numeroFactura: initialData.numeroFactura ?? '',
+          fechaEmision: initialData.fechaEmision ? new Date(initialData.fechaEmision).toISOString().split('T')[0] : '',
+          subtotal: initialData.subtotal ? String(initialData.subtotal) : '',
+          iva: initialData.iva ? String(initialData.iva) : '',
+          sapDocId: initialData.sapDocId ?? '',
+          ocrConfidence: initialData.ocrConfidence ? String(initialData.ocrConfidence) : '',
+        },
+        attachedFile: null,
+        filePreviewUrl: null,
+        sapSearchTerm: '',
+        sapSearchFecha: '',
+        sapResults: []
+      }]);
     }
   }, [initialData]);
 
-  const setField = <K extends keyof typeof form>(k: K, v: typeof form[K]) =>
-    setForm(prev => ({ ...prev, [k]: v }));
+  const updateCurrentForm = (updater: (prev: GastoFormState) => Partial<GastoFormState>) => {
+    setFormsList(prev => {
+      const newList = [...prev];
+      if (!newList[activeIndex]) return prev;
+      newList[activeIndex] = { ...newList[activeIndex], ...updater(newList[activeIndex]) };
+      return newList;
+    });
+  };
+
+  const setForm = (updater: Partial<GastoFormState['form']> | ((prev: GastoFormState['form']) => Partial<GastoFormState['form']>)) => {
+    updateCurrentForm(prev => {
+      const newForm = typeof updater === 'function' ? updater(prev.form) : updater;
+      return { form: { ...prev.form, ...newForm } };
+    });
+  };
+
+  const setField = <K extends keyof typeof form>(k: K, v: typeof form[K]) => {
+    updateCurrentForm(prev => ({ form: { ...prev.form, [k]: v } }));
+  };
+
+  const setAttachedFile = (file: File | null) => {
+    updateCurrentForm(prev => {
+      if (prev.filePreviewUrl) URL.revokeObjectURL(prev.filePreviewUrl);
+      return {
+        attachedFile: file,
+        filePreviewUrl: file ? URL.createObjectURL(file) : null
+      };
+    });
+  };
+
+  const setSapSearchTerm = (val: string) => updateCurrentForm(() => ({ sapSearchTerm: val }));
+  const setSapSearchFecha = (val: string) => updateCurrentForm(() => ({ sapSearchFecha: val }));
+  const setSapResults = (val: any[]) => updateCurrentForm(() => ({ sapResults: val }));
 
   // ─── Simuladores SAP y OCR ────────────────────────────────────────────────
 
   const handleSapSearch = async () => {
-    if (!sapSearchTerm) return;
     setIsSearchingSap(true);
+    setSapResults([]); // clear previous results
     try {
-      const data = await searchSapFactura(sapSearchTerm);
-      setForm(prev => ({
-        ...prev,
-        tipo: 'FACTURA',
-        nitProveedor: data.nitProveedor,
-        razonSocial: data.razonSocial,
-        numeroFactura: data.numeroFactura,
-        fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString().split('T')[0] : '',
-        subtotal: String(data.subtotal),
-        iva: String(data.iva),
-        amount: String(data.amount),
-        description: data.description,
-        sapDocId: data.sapDocId,
-      }));
-      notify('Datos recuperados de SAP exitosamente', 'success');
+      const results = await searchSapFactura(sapSearchTerm, sapSearchFecha);
+      setSapResults(results);
+      if (results.length === 0) {
+        notify('No se encontraron facturas con esos criterios', 'info');
+      }
     } catch (err: any) {
       notify(err.response?.data?.message ?? 'Error buscando en SAP', 'error');
     } finally {
       setIsSearchingSap(false);
     }
+  };
+
+  const handleSelectSapFactura = (data: any) => {
+    setForm(prev => ({
+      ...prev,
+      tipo: 'FACTURA',
+      nitProveedor: data.nitProveedor,
+      razonSocial: data.razonSocial,
+      numeroFactura: data.numeroFactura,
+      fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString().split('T')[0] : '',
+      subtotal: String(data.subtotal),
+      iva: String(data.iva),
+      amount: String(data.amount),
+      description: data.description,
+      sapDocId: data.sapDocId,
+    }));
+    setSapResults([]); // hide list after selection
+    notify('Datos recuperados de SAP exitosamente', 'success');
   };
 
   const handleXmlUpload = async (file: File) => {
@@ -272,51 +346,90 @@ export default function RegistrarGasto({
 
   // ─── Create / Edit ──────────────────────────────────────────────────────
 
-  const handleSave = async () => {
-    if (!form.amount || Number(form.amount) <= 0) {
-      notify('El monto debe ser mayor a cero.', 'error');
-      return;
+  const handleAddAnother = () => {
+    for (let i = 0; i < formsList.length; i++) {
+      if (!formsList[i].form.amount || Number(formsList[i].form.amount) <= 0) {
+        setActiveIndex(i);
+        notify(`Completa el monto del Gasto ${i + 1} antes de agregar otro.`, 'error');
+        return;
+      }
     }
+    setFormsList([...formsList, createEmptyForm()]);
+    setActiveIndex(formsList.length);
+  };
+
+  const handleSave = async () => {
+    for (let i = 0; i < formsList.length; i++) {
+      if (!formsList[i].form.amount || Number(formsList[i].form.amount) <= 0) {
+        setActiveIndex(i);
+        notify(`El monto debe ser mayor a cero en el Gasto ${i + 1}.`, 'error');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
-      let saved: GastoItem;
-      const payload = {
-        amount: Number(form.amount),
-        currency: form.currency,
-        description: form.description || undefined,
-        tipo: form.tipo,
-        origen: form.origen,
-        nitProveedor: form.nitProveedor || undefined,
-        razonSocial: form.razonSocial || undefined,
-        numeroFactura: form.numeroFactura || undefined,
-        fechaEmision: form.fechaEmision ? new Date(form.fechaEmision).toISOString() : undefined,
-        subtotal: form.subtotal ? Number(form.subtotal) : undefined,
-        iva: form.iva ? Number(form.iva) : undefined,
-        sapDocId: form.sapDocId || undefined,
-        ocrConfidence: form.ocrConfidence ? Number(form.ocrConfidence) : undefined,
-      };
-
       if (mode === 'create') {
         const legId = defaultLegalizacionId ?? gasto?.legalizacionId;
-        saved = await createGasto({ ...payload, ...(legId ? { legalizacionId: legId } : {}) });
-        notify('Gasto registrado correctamente.', 'success');
+        const savedGastos: GastoItem[] = [];
+        
+        for (let i = 0; i < formsList.length; i++) {
+          const item = formsList[i];
+          const payload = {
+            amount: Number(item.form.amount),
+            currency: item.form.currency,
+            description: item.form.description || undefined,
+            tipo: item.form.tipo,
+            origen: item.form.origen,
+            nitProveedor: item.form.nitProveedor || undefined,
+            razonSocial: item.form.razonSocial || undefined,
+            numeroFactura: item.form.numeroFactura || undefined,
+            fechaEmision: item.form.fechaEmision ? new Date(item.form.fechaEmision).toISOString() : undefined,
+            subtotal: item.form.subtotal ? Number(item.form.subtotal) : undefined,
+            iva: item.form.iva ? Number(item.form.iva) : undefined,
+            sapDocId: item.form.sapDocId || undefined,
+            ocrConfidence: item.form.ocrConfidence ? Number(item.form.ocrConfidence) : undefined,
+          };
+
+          const saved = await createGasto({ ...payload, ...(legId ? { legalizacionId: legId } : {}) });
+          if (item.attachedFile) {
+            try {
+              await uploadGastoArchivo(saved.id, item.attachedFile);
+            } catch (err: any) {
+              notify(`El gasto ${i+1} se guardó, pero falló la subida del archivo.`, 'error');
+            }
+          }
+          savedGastos.push(saved);
+        }
+        
+        notify(`${savedGastos.length} gasto(s) registrado(s) correctamente.`, 'success');
+        onSuccess?.(savedGastos);
       } else {
         if (!gasto) return;
-        saved = await updateGasto(gasto.id, payload);
-        notify('Gasto actualizado correctamente.', 'success');
-      }
-
-      if (attachedFile) {
-        try {
-          await uploadGastoArchivo(saved.id, attachedFile);
-          notify('Archivo adjuntado y guardado correctamente.', 'success');
-        } catch (err: any) {
-          notify('Gasto guardado, pero falló la subida del archivo adjunto.', 'error');
+        const item = formsList[0];
+        const payload = {
+          amount: Number(item.form.amount),
+          currency: item.form.currency,
+          description: item.form.description || undefined,
+          tipo: item.form.tipo,
+          origen: item.form.origen,
+          nitProveedor: item.form.nitProveedor || undefined,
+          razonSocial: item.form.razonSocial || undefined,
+          numeroFactura: item.form.numeroFactura || undefined,
+          fechaEmision: item.form.fechaEmision ? new Date(item.form.fechaEmision).toISOString() : undefined,
+          subtotal: item.form.subtotal ? Number(item.form.subtotal) : undefined,
+          iva: item.form.iva ? Number(item.form.iva) : undefined,
+          sapDocId: item.form.sapDocId || undefined,
+          ocrConfidence: item.form.ocrConfidence ? Number(item.form.ocrConfidence) : undefined,
+        };
+        const saved = await updateGasto(gasto.id, payload);
+        if (item.attachedFile) {
+           await uploadGastoArchivo(saved.id, item.attachedFile);
         }
+        notify('Gasto actualizado correctamente.', 'success');
+        setGasto(saved);
+        onSuccess?.(saved);
       }
-
-      setGasto(saved);
-      onSuccess?.(saved);
     } catch (err: any) {
       notify(err.response?.data?.message ?? err.message ?? 'Error al guardar.', 'error');
     } finally {
@@ -385,6 +498,28 @@ export default function RegistrarGasto({
         </div>
       </div>
 
+      {mode === 'create' && (
+        <div className="px-6 py-3 border-b border-gray-100 flex gap-2 overflow-x-auto bg-white">
+          {formsList.map((f, i) => (
+            <button 
+              key={f.id} 
+              onClick={() => setActiveIndex(i)}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 transition-colors ${activeIndex === i ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent'}`}
+            >
+              Gasto {i + 1}
+              {formsList.length > 1 && (
+                <XCircle size={16} className="text-gray-400 hover:text-red-500 ml-1 transition-colors" onClick={(e) => { 
+                  e.stopPropagation(); 
+                  const newList = formsList.filter((_, idx) => idx !== i);
+                  setFormsList(newList);
+                  if (activeIndex >= newList.length - 1) setActiveIndex(newList.length - 2 >= 0 ? newList.length - 2 : 0);
+                }} />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="p-6">
         {/* Timeline */}
         {gasto && (mode === 'view' || mode === 'edit') && (
@@ -395,7 +530,7 @@ export default function RegistrarGasto({
         {mode === 'create' && (
           <div className="mb-8">
             <label className="text-sm font-semibold text-gray-700 mb-3 block">¿Cómo deseas registrar este gasto?</label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <OrigenOption 
                 icon={<UploadCloud size={20} />} title="Factura Electrónica" desc="Obtener datos directo de SAP" 
                 active={form.origen === 'ELECTRONICA'} onClick={() => { setField('origen', 'ELECTRONICA'); setAttachedFile(null); setSapSearchTerm(''); }} 
@@ -403,10 +538,6 @@ export default function RegistrarGasto({
               <OrigenOption 
                 icon={<ScanLine size={20} />} title="Factura Física (OCR)" desc="Subir PDF/foto y extraer con IA" 
                 active={form.origen === 'NO_ELECTRONICA'} onClick={() => { setField('origen', 'NO_ELECTRONICA'); setAttachedFile(null); setSapSearchTerm(''); }} 
-              />
-              <OrigenOption 
-                icon={<FileText size={20} />} title="Registro Manual" desc="Digitar los datos manualmente" 
-                active={form.origen === 'MANUAL'} onClick={() => { setField('origen', 'MANUAL'); setAttachedFile(null); setSapSearchTerm(''); }} 
               />
             </div>
           </div>
@@ -425,23 +556,65 @@ export default function RegistrarGasto({
                   Búsqueda Electrónica en SAP
                 </div>
                 {mode === 'create' && !form.sapDocId ? (
-                  <div className="flex gap-3">
-                    <div className="flex-1 relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        placeholder="Ej. 900.123.456-7 o NCTR743"
-                        value={sapSearchTerm}
-                        onChange={e => setSapSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
-                      />
+                  <div className="space-y-3">
+                    <div className="flex flex-col md:flex-row gap-3">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          placeholder="Buscar por NIT..."
+                          value={sapSearchTerm}
+                          onChange={e => setSapSearchTerm(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                        />
+                      </div>
+                      <div className="flex-1 relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                          type="date"
+                          value={sapSearchFecha}
+                          onChange={e => setSapSearchFecha(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                        />
+                      </div>
+                      <button 
+                        onClick={handleSapSearch} disabled={isSearchingSap}
+                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2 justify-center"
+                      >
+                        {isSearchingSap ? <Loader2 size={16} className="animate-spin" /> : 'Buscar'}
+                      </button>
                     </div>
-                    <button 
-                      onClick={handleSapSearch} disabled={isSearchingSap || !sapSearchTerm}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {isSearchingSap ? <Loader2 size={16} className="animate-spin" /> : 'Buscar'}
-                    </button>
+
+                    {sapResults.length > 0 && (
+                      <div className="mt-4 bg-white border border-blue-100 rounded-lg shadow-sm overflow-hidden">
+                        <div className="bg-blue-50/50 px-4 py-2 border-b border-blue-100 flex items-center justify-between">
+                          <span className="text-xs font-semibold text-blue-800">Resultados encontrados ({sapResults.length})</span>
+                          <button onClick={() => setSapResults([])} className="text-gray-400 hover:text-red-500"><XCircle size={14} /></button>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto">
+                          <ul className="divide-y divide-gray-100">
+                            {sapResults.map((res: any, idx: number) => (
+                              <li key={idx} className="p-3 hover:bg-blue-50/30 transition-colors cursor-pointer group" onClick={() => handleSelectSapFactura(res)}>
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="text-sm font-bold text-gray-800 group-hover:text-blue-700">{res.razonSocial}</p>
+                                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                      <span>NIT: {res.nitProveedor}</span>
+                                      <span>Factura: {res.numeroFactura}</span>
+                                      <span>Emisión: {res.fechaEmision}</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-sm font-bold text-gray-900">${res.amount.toLocaleString()}</p>
+                                    <p className="text-xs text-gray-400">{res.sapDocId}</p>
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-100/50 px-3 py-2 rounded-lg mt-2 border border-blue-100 font-medium">
@@ -689,9 +862,14 @@ export default function RegistrarGasto({
         {/* ── Botones inferiores ── */}
         <div className="flex gap-3 mt-8 pt-6 border-t border-gray-100">
           {mode === 'create' && (
-            <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#1A1F36] rounded-xl hover:bg-[#1A1F36]/90 transition-colors shadow-md disabled:opacity-60">
-              {loading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />} Registrar Gasto
-            </button>
+            <>
+              <button onClick={handleAddAnother} type="button" className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-[#E8450A] bg-white border-2 border-[#E8450A]/20 rounded-xl hover:bg-[#E8450A]/5 transition-colors shadow-sm">
+                <Plus size={18} /> Agregar Otro
+              </button>
+              <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#1A1F36] rounded-xl hover:bg-[#1A1F36]/90 transition-colors shadow-md disabled:opacity-60">
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />} Registrar {formsList.length > 1 ? `Gastos (${formsList.length})` : 'Gasto'}
+              </button>
+            </>
           )}
           {canEdit && (
             <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#E8450A] rounded-xl hover:bg-[#E8450A]/90 transition-colors shadow-md disabled:opacity-60">
