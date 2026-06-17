@@ -4,13 +4,13 @@ import axios from 'axios';
 // Descomenta la URL que quieras usar y comenta la otra.
 // Si usas VITE_API_BASE_URL en un archivo .env, esa tendrá prioridad.
 
-//const API_URL = 'http://localhost:4000';
+const API_URL = 'http://localhost:4000';
 
 // OPCIÓN 2: Backend en Producción (Render)
 //const API_URL = 'https://portal-web-t7bz.onrender.com';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL, // || API_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL || API_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
