@@ -173,3 +173,26 @@ model StateTransition {
   changedBy   User     @relation("StateTransitionUser", fields: [changedById], references: [id])
   changedAt   DateTime @default(now())
 }
+
+model SapFactura {
+  id                   Int      @id @default(autoincrement())
+  globalDocumentId     String   @unique
+  countryDocumentId    String?  // CUFE
+  date                 DateTime
+  documentTypeName     String
+  seriesNumber         String?  // e.g. "FV14025"
+  series               String?  // e.g. "FV"
+  number               String?  // folio e.g. "14025"
+  documentSenderCode   String   // NIT emisor
+  documentSenderName   String   // Razón social emisor
+  documentReceiverCode String?  // NIT receptor
+  documentReceiverName String?  // Razón social receptor
+  netAmount            Float?
+  taxAmount            Float?
+  totalAmount          Float?
+  currencyType         String   @default("COP")
+  pdfBase64            String?  @db.Text
+  xmlBase64            String?  @db.Text
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}

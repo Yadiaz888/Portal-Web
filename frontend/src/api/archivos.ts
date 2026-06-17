@@ -28,3 +28,12 @@ export const listGastoArchivos = async (gastoId: string | number): Promise<Gasto
 export const deleteGastoArchivo = async (gastoId: string | number, archivoId: number): Promise<void> => {
   await client.delete(`/api/v1/gastos/${gastoId}/archivos/${archivoId}`);
 };
+
+export const getGastoArchivoBlobUrl = async (gastoId: string | number, archivoId: number): Promise<string> => {
+  const { data } = await client.get(
+    `/api/v1/gastos/${gastoId}/archivos/${archivoId}/download`,
+    { responseType: 'arraybuffer' },
+  );
+  const blob = new Blob([data], { type: 'application/pdf' });
+  return URL.createObjectURL(blob);
+};

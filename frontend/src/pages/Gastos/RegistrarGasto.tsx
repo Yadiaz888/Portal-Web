@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import {
   Plus, Calendar, ArrowLeft, CheckCircle2, XCircle,
   Send, Clock, BadgeCheck, Loader2, Search, UploadCloud,
-  FileText, ScanLine, FileCheck
+  FileText, ScanLine, FileCheck, AlertTriangle
 } from 'lucide-react';
 import FileDropZone from '../../components/UI/FileDropZone';
+import Modal from '../../components/UI/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -13,9 +14,9 @@ import {
   liquidateGasto, rejectGasto,
   sendGastoToManager, sendGastoToAccountant,
 } from '../../api/gastos';
-import { searchSapFactura, extractXmlData } from '../../api/sap';
+import { searchSapFactura, getSapFacturaDocumentos, getSapFacturaPdfBlobUrl, extractXmlData } from '../../api/sap';
 import { extractOcrData } from '../../api/ocr';
-import { uploadGastoArchivo } from '../../api/archivos';
+import { uploadGastoArchivo, listGastoArchivos, getGastoArchivoBlobUrl } from '../../api/archivos';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -100,6 +101,25 @@ function ProgressTimeline({ status }: { status: GastoStatus }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+type OrigenSnapshot = {
+  formData: {
+    tipo: 'RECIBO' | 'FACTURA' | 'OTRO';
+    amount: string;
+    currency: string;
+    description: string;
+    nitProveedor: string;
+    razonSocial: string;
+    numeroFactura: string;
+    fechaEmision: string;
+    subtotal: string;
+    iva: string;
+    sapDocId: string;
+    ocrConfidence: string;
+  };
+  sapPdfUrl: string | null;
+  attachedFile: File | null;
+};
+
 interface GastoFormState {
   id: string;
   form: {
@@ -119,8 +139,12 @@ interface GastoFormState {
   };
   attachedFile: File | null;
   filePreviewUrl: string | null;
+  sapPdfPreviewUrl: string | null;
+  electronicaSnapshot: OrigenSnapshot | null;
+  ocrSnapshot: OrigenSnapshot | null;
   sapSearchTerm: string;
   sapSearchFecha: string;
+  sapSearchDateTo: string;
   sapResults: any[];
 }
 
@@ -173,8 +197,12 @@ export default function RegistrarGasto({
     },
     attachedFile: null,
     filePreviewUrl: null,
+    sapPdfPreviewUrl: null,
+    electronicaSnapshot: null,
+    ocrSnapshot: null,
     sapSearchTerm: '',
     sapSearchFecha: '',
+    sapSearchDateTo: '',
     sapResults: [],
   });
 
@@ -185,39 +213,147 @@ export default function RegistrarGasto({
   const form = currentFormState.form;
   const attachedFile = currentFormState.attachedFile;
   const filePreviewUrl = currentFormState.filePreviewUrl;
+  const sapPdfPreviewUrl = currentFormState.sapPdfPreviewUrl;
+  const electronicaSnapshot = currentFormState.electronicaSnapshot;
+  const ocrSnapshot = currentFormState.ocrSnapshot;
   const sapSearchTerm = currentFormState.sapSearchTerm;
   const sapSearchFecha = currentFormState.sapSearchFecha;
+  const sapSearchDateTo = currentFormState.sapSearchDateTo;
   const sapResults = currentFormState.sapResults;
 
   const [isSearchingSap, setIsSearchingSap] = useState(false);
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
 
+  // Helpers para los nuevos campos por-gasto
+  const setSapPdfPreviewUrl = (url: string | null) =>
+    updateCurrentForm(() => ({ sapPdfPreviewUrl: url }));
+  const setElectronicaSnapshot = (snap: OrigenSnapshot | null) =>
+    updateCurrentForm(() => ({ electronicaSnapshot: snap }));
+  const setOcrSnapshot = (snap: OrigenSnapshot | null) =>
+    updateCurrentForm(() => ({ ocrSnapshot: snap }));
+
+  const handleOrigenChange = (newOrigen: 'ELECTRONICA' | 'NO_ELECTRONICA') => {
+    if (form.origen === newOrigen) return;
+
+    const emptyFormFields = (o: 'ELECTRONICA' | 'NO_ELECTRONICA') => ({
+      tipo: 'FACTURA' as const,
+      origen: o,
+      amount: '',
+      currency: form.currency,
+      description: '',
+      nitProveedor: '',
+      razonSocial: '',
+      numeroFactura: '',
+      fechaEmision: '',
+      subtotal: '',
+      iva: '',
+      sapDocId: '',
+      ocrConfidence: '',
+    });
+
+    if (newOrigen === 'ELECTRONICA') {
+      updateCurrentForm(prev => {
+        // Guardar snapshot OCR con los datos actuales
+        const { origen: _o, ...restForm } = prev.form;
+        const newOcrSnap: OrigenSnapshot = {
+          formData: restForm,
+          sapPdfUrl: null,
+          attachedFile: prev.attachedFile,
+        };
+        // Restaurar snapshot ELECTRONICA o vacío
+        const esnap = prev.electronicaSnapshot;
+        if (prev.filePreviewUrl) URL.revokeObjectURL(prev.filePreviewUrl);
+        return {
+          ocrSnapshot: newOcrSnap,
+          form: esnap
+            ? { ...esnap.formData, origen: 'ELECTRONICA' }
+            : emptyFormFields('ELECTRONICA'),
+          attachedFile: null,
+          filePreviewUrl: null,
+          sapPdfPreviewUrl: esnap?.sapPdfUrl ?? null,
+        };
+      });
+    } else {
+      updateCurrentForm(prev => {
+        // Guardar snapshot ELECTRONICA con los datos actuales
+        const { origen: _o, ...restForm } = prev.form;
+        const newESnap: OrigenSnapshot = {
+          formData: restForm,
+          sapPdfUrl: prev.sapPdfPreviewUrl,
+          attachedFile: null,
+        };
+        // Restaurar snapshot OCR o vacío
+        const osnap = prev.ocrSnapshot;
+        if (prev.filePreviewUrl) URL.revokeObjectURL(prev.filePreviewUrl);
+        return {
+          electronicaSnapshot: newESnap,
+          form: osnap
+            ? { ...osnap.formData, origen: 'NO_ELECTRONICA' }
+            : emptyFormFields('NO_ELECTRONICA'),
+          attachedFile: osnap?.attachedFile ?? null,
+          filePreviewUrl: osnap?.attachedFile ? URL.createObjectURL(osnap.attachedFile) : null,
+          sapPdfPreviewUrl: null, // no revocar: está en el snapshot
+        };
+      });
+    }
+  };
+
+  const [rejectModal, setRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+
   useEffect(() => {
-    if (initialData) {
-      setGasto(initialData);
-      setFormsList([{
-        id: 'edit-1',
-        form: {
-          tipo: initialData.tipo,
-          origen: initialData.origen,
-          amount: String(initialData.amount),
-          currency: initialData.currency ?? 'COP',
-          description: initialData.description ?? '',
-          nitProveedor: initialData.nitProveedor ?? '',
-          razonSocial: initialData.razonSocial ?? '',
-          numeroFactura: initialData.numeroFactura ?? '',
-          fechaEmision: initialData.fechaEmision ? new Date(initialData.fechaEmision).toISOString().split('T')[0] : '',
-          subtotal: initialData.subtotal ? String(initialData.subtotal) : '',
-          iva: initialData.iva ? String(initialData.iva) : '',
-          sapDocId: initialData.sapDocId ?? '',
-          ocrConfidence: initialData.ocrConfidence ? String(initialData.ocrConfidence) : '',
-        },
-        attachedFile: null,
-        filePreviewUrl: null,
-        sapSearchTerm: '',
-        sapSearchFecha: '',
-        sapResults: []
-      }]);
+    if (!initialData) return;
+    setGasto(initialData);
+    setFormsList([{
+      id: 'edit-1',
+      form: {
+        tipo: initialData.tipo,
+        origen: initialData.origen,
+        amount: String(initialData.amount),
+        currency: initialData.currency ?? 'COP',
+        description: initialData.description ?? '',
+        nitProveedor: initialData.nitProveedor ?? '',
+        razonSocial: initialData.razonSocial ?? '',
+        numeroFactura: initialData.numeroFactura ?? '',
+        fechaEmision: initialData.fechaEmision ? new Date(initialData.fechaEmision).toISOString().split('T')[0] : '',
+        subtotal: initialData.subtotal ? String(initialData.subtotal) : '',
+        iva: initialData.iva ? String(initialData.iva) : '',
+        sapDocId: initialData.sapDocId ?? '',
+        ocrConfidence: initialData.ocrConfidence ? String(initialData.ocrConfidence) : '',
+      },
+      attachedFile: null,
+      filePreviewUrl: null,
+      sapPdfPreviewUrl: null,
+      electronicaSnapshot: null,
+      ocrSnapshot: null,
+      sapSearchTerm: '',
+      sapSearchFecha: '',
+      sapSearchDateTo: '',
+      sapResults: []
+    }]);
+
+    // Cargar preview del documento en modo vista/edición
+    if (initialData.origen === 'ELECTRONICA' && initialData.sapDocId) {
+      getSapFacturaPdfBlobUrl(initialData.sapDocId).then(blobUrl => {
+        setFormsList(prev => {
+          const list = [...prev];
+          if (list[0]) list[0] = { ...list[0], sapPdfPreviewUrl: blobUrl };
+          return list;
+        });
+      }).catch(() => {});
+    } else if (initialData.origen === 'NO_ELECTRONICA') {
+      listGastoArchivos(initialData.id).then(async archivos => {
+        const archivo = archivos.find(
+          a => a.mimetype === 'application/pdf' || a.filename?.toLowerCase().endsWith('.pdf')
+        );
+        if (!archivo) return;
+        const blobUrl = await getGastoArchivoBlobUrl(initialData.id, archivo.id);
+        setFormsList(prev => {
+          const list = [...prev];
+          if (list[0]) list[0] = { ...list[0], filePreviewUrl: blobUrl };
+          return list;
+        });
+      }).catch(() => {});
     }
   }, [initialData]);
 
@@ -253,15 +389,24 @@ export default function RegistrarGasto({
 
   const setSapSearchTerm = (val: string) => updateCurrentForm(() => ({ sapSearchTerm: val }));
   const setSapSearchFecha = (val: string) => updateCurrentForm(() => ({ sapSearchFecha: val }));
+  const setSapSearchDateTo = (val: string) => updateCurrentForm(() => ({ sapSearchDateTo: val }));
   const setSapResults = (val: any[]) => updateCurrentForm(() => ({ sapResults: val }));
 
   // ─── Simuladores SAP y OCR ────────────────────────────────────────────────
 
   const handleSapSearch = async () => {
+    if (!sapSearchTerm && !sapSearchFecha && !sapSearchDateTo) {
+      notify('Ingresa al menos un NIT o una fecha para buscar', 'info');
+      return;
+    }
     setIsSearchingSap(true);
-    setSapResults([]); // clear previous results
+    setSapResults([]);
     try {
-      const results = await searchSapFactura(sapSearchTerm, sapSearchFecha);
+      const results = await searchSapFactura({
+        nit: sapSearchTerm || undefined,
+        dateFrom: sapSearchFecha || undefined,
+        dateTo: sapSearchDateTo || undefined,
+      });
       setSapResults(results);
       if (results.length === 0) {
         notify('No se encontraron facturas con esos criterios', 'info');
@@ -273,22 +418,41 @@ export default function RegistrarGasto({
     }
   };
 
-  const handleSelectSapFactura = (data: any) => {
-    setForm(prev => ({
-      ...prev,
-      tipo: 'FACTURA',
-      nitProveedor: data.nitProveedor,
-      razonSocial: data.razonSocial,
-      numeroFactura: data.numeroFactura,
-      fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString().split('T')[0] : '',
-      subtotal: String(data.subtotal),
-      iva: String(data.iva),
-      amount: String(data.amount),
-      description: data.description,
-      sapDocId: data.sapDocId,
-    }));
-    setSapResults([]); // hide list after selection
-    notify('Datos recuperados de SAP exitosamente', 'success');
+  const handleSelectSapFactura = async (row: any) => {
+    setIsSearchingSap(true);
+    try {
+      const data = await getSapFacturaDocumentos(row.globalDocumentId);
+
+      // Fetch PDF binario autenticado → blob URL (igual que OCR preview)
+      if (data.pdfBase64) {
+        if (sapPdfPreviewUrl) URL.revokeObjectURL(sapPdfPreviewUrl);
+        const blobUrl = await getSapFacturaPdfBlobUrl(row.globalDocumentId);
+        setSapPdfPreviewUrl(blobUrl);
+        setAttachedFile(null);
+      }
+
+      setForm(prev => ({
+        ...prev,
+        tipo: 'FACTURA',
+        nitProveedor: data.documentSenderCode ?? '',
+        razonSocial: data.documentSenderName ?? '',
+        numeroFactura: data.seriesNumber ?? '',
+        fechaEmision: data.date ? new Date(data.date).toISOString().split('T')[0] : '',
+        subtotal: data.netAmount != null ? String(data.netAmount) : '',
+        iva: data.taxAmount != null ? String(data.taxAmount) : '',
+        amount: data.totalAmount != null ? String(data.totalAmount) : '',
+        description: `${data.documentTypeName} ${data.seriesNumber ?? ''} - ${data.documentSenderName ?? ''}`,
+        sapDocId: data.globalDocumentId ?? '',
+      }));
+      setSapResults([]);
+      // Limpiar snapshot OCR: al cargar SAP, el lado OCR queda vacío
+      setOcrSnapshot(null);
+      notify('Factura cargada — revisa y completa los datos', 'success');
+    } catch (err: any) {
+      notify(err.response?.data?.message ?? 'Error obteniendo documentos SAP', 'error');
+    } finally {
+      setIsSearchingSap(false);
+    }
   };
 
   const handleXmlUpload = async (file: File) => {
@@ -318,6 +482,11 @@ export default function RegistrarGasto({
 
   const handleOcrUpload = async (file: File) => {
     setIsProcessingOcr(true);
+    // Limpiar snapshot ELECTRONICA: al cargar OCR, el lado SAP queda vacío
+    updateCurrentForm(prev => {
+      if (prev.electronicaSnapshot?.sapPdfUrl) URL.revokeObjectURL(prev.electronicaSnapshot.sapPdfUrl);
+      return { electronicaSnapshot: null };
+    });
     try {
       const result = await extractOcrData(file);
       const data = result.extractedData;
@@ -439,6 +608,13 @@ export default function RegistrarGasto({
 
   // ─── Transitions ────────────────────────────────────────────────────────
 
+  const handleRejectConfirm = async () => {
+    if (!gasto) return;
+    setRejectModal(false);
+    await doTransition(() => rejectGasto(gasto.id, rejectReason.trim() || undefined), 'Gasto rechazado.');
+    setRejectReason('');
+  };
+
   const doTransition = async (action: () => Promise<GastoItem>, successMsg: string) => {
     setLoading(true);
     try {
@@ -533,11 +709,11 @@ export default function RegistrarGasto({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <OrigenOption 
                 icon={<UploadCloud size={20} />} title="Factura Electrónica" desc="Obtener datos directo de SAP" 
-                active={form.origen === 'ELECTRONICA'} onClick={() => { setField('origen', 'ELECTRONICA'); setAttachedFile(null); setSapSearchTerm(''); }} 
+                active={form.origen === 'ELECTRONICA'} onClick={() => handleOrigenChange('ELECTRONICA')}
               />
-              <OrigenOption 
-                icon={<ScanLine size={20} />} title="Factura Física (OCR)" desc="Subir PDF/foto y extraer con IA" 
-                active={form.origen === 'NO_ELECTRONICA'} onClick={() => { setField('origen', 'NO_ELECTRONICA'); setAttachedFile(null); setSapSearchTerm(''); }} 
+              <OrigenOption
+                icon={<ScanLine size={20} />} title="Factura Física (OCR)" desc="Subir PDF/foto y extraer con IA"
+                active={form.origen === 'NO_ELECTRONICA'} onClick={() => handleOrigenChange('NO_ELECTRONICA')}
               />
             </div>
           </div>
@@ -557,69 +733,113 @@ export default function RegistrarGasto({
                 </div>
                 {mode === 'create' && !form.sapDocId ? (
                   <div className="space-y-3">
+                    {/* Fila de filtros */}
                     <div className="flex flex-col md:flex-row gap-3">
                       <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                         <input
                           type="text"
-                          placeholder="Buscar por NIT..."
+                          placeholder="NIT emisor..."
                           value={sapSearchTerm}
                           onChange={e => setSapSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                          onKeyDown={e => e.key === 'Enter' && handleSapSearch()}
+                          className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
                         />
                       </div>
-                      <div className="flex-1 relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input
-                          type="date"
-                          value={sapSearchFecha}
-                          onChange={e => setSapSearchFecha(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
-                        />
+                      <div className="flex items-center gap-2">
+                        <div className="relative">
+                          <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                          <input
+                            type="date"
+                            value={sapSearchFecha}
+                            onChange={e => setSapSearchFecha(e.target.value)}
+                            className="pl-8 pr-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                          />
+                        </div>
+                        <span className="text-xs text-gray-400 shrink-0">hasta</span>
+                        <div className="relative">
+                          <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                          <input
+                            type="date"
+                            value={sapSearchDateTo}
+                            onChange={e => setSapSearchDateTo(e.target.value)}
+                            className="pl-8 pr-3 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                          />
+                        </div>
                       </div>
-                      <button 
+                      <button
                         onClick={handleSapSearch} disabled={isSearchingSap}
-                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2 justify-center"
+                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2 justify-center shrink-0"
                       >
-                        {isSearchingSap ? <Loader2 size={16} className="animate-spin" /> : 'Buscar'}
+                        {isSearchingSap ? <Loader2 size={14} className="animate-spin" /> : <><Search size={14} /> Buscar</>}
                       </button>
                     </div>
 
+                    {/* Tabla de resultados */}
                     {sapResults.length > 0 && (
-                      <div className="mt-4 bg-white border border-blue-100 rounded-lg shadow-sm overflow-hidden">
-                        <div className="bg-blue-50/50 px-4 py-2 border-b border-blue-100 flex items-center justify-between">
-                          <span className="text-xs font-semibold text-blue-800">Resultados encontrados ({sapResults.length})</span>
-                          <button onClick={() => setSapResults([])} className="text-gray-400 hover:text-red-500"><XCircle size={14} /></button>
+                      <div className="bg-white border border-blue-100 rounded-lg shadow-sm overflow-hidden">
+                        <div className="bg-blue-50/60 px-4 py-2 border-b border-blue-100 flex items-center justify-between">
+                          <span className="text-xs font-semibold text-blue-800">{sapResults.length} resultado{sapResults.length !== 1 ? 's' : ''} — haz clic en una fila para seleccionar</span>
+                          <button onClick={() => setSapResults([])} className="text-gray-400 hover:text-red-500 transition-colors">
+                            <XCircle size={14} />
+                          </button>
                         </div>
-                        <div className="max-h-60 overflow-y-auto">
-                          <ul className="divide-y divide-gray-100">
-                            {sapResults.map((res: any, idx: number) => (
-                              <li key={idx} className="p-3 hover:bg-blue-50/30 transition-colors cursor-pointer group" onClick={() => handleSelectSapFactura(res)}>
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="text-sm font-bold text-gray-800 group-hover:text-blue-700">{res.razonSocial}</p>
-                                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                                      <span>NIT: {res.nitProveedor}</span>
-                                      <span>Factura: {res.numeroFactura}</span>
-                                      <span>Emisión: {res.fechaEmision}</span>
-                                    </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-sm font-bold text-gray-900">${res.amount.toLocaleString()}</p>
-                                    <p className="text-xs text-gray-400">{res.sapDocId}</p>
-                                  </div>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
+                        <div className="overflow-x-auto max-h-64 overflow-y-auto">
+                          <table className="w-full text-xs">
+                            <thead className="sticky top-0 bg-gray-50 border-b border-gray-100">
+                              <tr>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Fecha</th>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Serie</th>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Folio</th>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Tipo</th>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">NIT Emisor</th>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide">Emisor</th>
+                                <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wide">Total</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                              {sapResults.map((res: any) => (
+                                <tr
+                                  key={res.globalDocumentId}
+                                  className="hover:bg-blue-50/40 cursor-pointer transition-colors group"
+                                  onClick={() => handleSelectSapFactura(res)}
+                                >
+                                  <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">
+                                    {new Date(res.date).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                  </td>
+                                  <td className="px-3 py-2.5 font-mono text-gray-700">{res.series ?? '—'}</td>
+                                  <td className="px-3 py-2.5 font-mono text-gray-700">{res.number ?? '—'}</td>
+                                  <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{res.documentTypeName}</td>
+                                  <td className="px-3 py-2.5 font-mono text-gray-600">{res.documentSenderCode}</td>
+                                  <td className="px-3 py-2.5 font-semibold text-gray-800 group-hover:text-blue-700 max-w-[160px] truncate">{res.documentSenderName}</td>
+                                  <td className="px-3 py-2.5 text-right font-semibold text-gray-900 whitespace-nowrap">
+                                    ${(res.totalAmount ?? 0).toLocaleString('es-CO')}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-100/50 px-3 py-2 rounded-lg mt-2 border border-blue-100 font-medium">
-                    <FileCheck size={16} />
-                    Documento vinculado a SAP ID: <span className="font-mono bg-white px-2 py-0.5 rounded border border-blue-200">{form.sapDocId}</span>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-100/50 px-3 py-2 rounded-lg border border-blue-100 font-medium">
+                      <FileCheck size={16} className="shrink-0" />
+                      <span className="truncate">Vinculado: <span className="font-mono">{form.numeroFactura || form.sapDocId}</span> — {form.razonSocial}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setField('sapDocId', '');
+                        if (sapPdfPreviewUrl) { URL.revokeObjectURL(sapPdfPreviewUrl); setSapPdfPreviewUrl(null); }
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      <Search size={13} />
+                      Cambiar factura — volver a buscar
+                    </button>
                   </div>
                 )}
               </div>
@@ -758,30 +978,77 @@ export default function RegistrarGasto({
 
           {/* ── Columna Derecha: Archivo + Flujo ── */}
           <div className="space-y-5">
-            {/* Archivo adjunto (preview del archivo cargado desde OCR) */}
-            {attachedFile && filePreviewUrl && (
-              <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-gray-700">Archivo Adjunto</h4>
-                  <button type="button" onClick={() => setAttachedFile(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+            {/* Preview PDF de SAP — persiste aunque se cambie de origen */}
+            {sapPdfPreviewUrl && (
+              <div className="bg-white border border-blue-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="px-4 py-3 border-b border-blue-100 flex items-center justify-between bg-blue-50/40">
+                  <div className="flex items-center gap-2">
+                    <FileText size={14} className="text-blue-600" />
+                    <h4 className="text-sm font-bold text-blue-800">PDF — {form.numeroFactura || 'Factura electrónica'}</h4>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { if (sapPdfPreviewUrl) URL.revokeObjectURL(sapPdfPreviewUrl); setSapPdfPreviewUrl(null); }}
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    title="Cerrar previsualización"
+                  >
                     <XCircle size={16} />
                   </button>
                 </div>
+                <div className="p-2">
+                  <iframe src={sapPdfPreviewUrl} title="PDF SAP" className="w-full h-72 rounded-lg border border-blue-100" />
+                </div>
+                <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-blue-600 shrink-0" />
+                  <p className="text-xs text-blue-700 font-medium truncate">{form.razonSocial || 'Factura electrónica'}</p>
+                  <a
+                    href={sapPdfPreviewUrl}
+                    download={`${form.numeroFactura || 'factura'}.pdf`}
+                    className="ml-auto text-xs text-blue-600 hover:underline whitespace-nowrap font-medium shrink-0"
+                  >
+                    ↓ Descargar
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Archivo adjunto (preview: en crear viene de File; en vista viene de Supabase Storage) */}
+            {filePreviewUrl && (
+              <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText size={14} className="text-gray-500" />
+                    <h4 className="text-sm font-bold text-gray-700">Archivo Adjunto</h4>
+                  </div>
+                  {!isReadOnly && (
+                    <button type="button" onClick={() => setAttachedFile(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+                      <XCircle size={16} />
+                    </button>
+                  )}
+                </div>
                 <div className="p-3">
-                  {attachedFile.type.startsWith('image/') ? (
+                  {attachedFile?.type.startsWith('image/') ? (
                     <img src={filePreviewUrl} alt="Preview" className="w-full rounded-lg border border-gray-200 max-h-64 object-contain bg-gray-50" />
-                  ) : attachedFile.type === 'application/pdf' ? (
-                    <iframe src={filePreviewUrl} title="PDF Preview" className="w-full h-64 rounded-lg border border-gray-200" />
                   ) : (
-                    <div className="flex items-center justify-center h-32 bg-gray-50 rounded-lg border border-gray-200">
-                      <FileText size={32} className="text-gray-400" />
-                    </div>
+                    <iframe src={filePreviewUrl} title="PDF Preview" className="w-full h-72 rounded-lg border border-gray-200" />
                   )}
                 </div>
                 <div className="px-4 py-2 bg-green-50 border-t border-green-100 flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-green-600 shrink-0" />
-                  <p className="text-xs text-green-700 font-medium truncate">{attachedFile.name}</p>
-                  <span className="text-xs text-green-500 ml-auto whitespace-nowrap">{(attachedFile.size / 1024).toFixed(1)} KB</span>
+                  {attachedFile ? (
+                    <>
+                      <p className="text-xs text-green-700 font-medium truncate">{attachedFile.name}</p>
+                      <span className="text-xs text-green-500 ml-auto whitespace-nowrap">{(attachedFile.size / 1024).toFixed(1)} KB</span>
+                    </>
+                  ) : (
+                    <p className="text-xs text-green-700 font-medium truncate">
+                      {form.numeroFactura ? `Factura ${form.numeroFactura}` : 'Documento adjunto'}
+                    </p>
+                  )}
+                  <a href={filePreviewUrl} download target="_blank" rel="noreferrer"
+                    className="ml-auto text-xs text-green-600 hover:underline whitespace-nowrap font-medium shrink-0">
+                    ↓ Descargar
+                  </a>
                 </div>
               </div>
             )}
@@ -814,8 +1081,8 @@ export default function RegistrarGasto({
                         {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Enviar a Contabilidad
                       </button>
                       {canReject && (
-                        <button disabled={loading} onClick={() => doTransition(() => rejectGasto(gasto.id, 'Rechazado por jefe'), 'Gasto rechazado.')} className="w-full py-2.5 flex items-center justify-center gap-2 bg-white border-2 border-red-100 text-red-600 text-sm font-bold rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50">
-                          {loading ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />} Rechazar
+                        <button disabled={loading} onClick={() => { setRejectReason(''); setRejectModal(true); }} className="w-full py-2.5 flex items-center justify-center gap-2 bg-white border-2 border-red-100 text-red-600 text-sm font-bold rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50">
+                          <XCircle size={16} /> Rechazar
                         </button>
                       )}
                     </div>
@@ -829,8 +1096,8 @@ export default function RegistrarGasto({
                         </button>
                       )}
                       {canReject && (
-                        <button disabled={loading} onClick={() => doTransition(() => rejectGasto(gasto.id, 'Rechazado por contabilidad'), 'Gasto rechazado.')} className="w-full py-2.5 flex items-center justify-center gap-2 bg-white border-2 border-red-100 text-red-600 text-sm font-bold rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50">
-                          {loading ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />} Rechazar
+                        <button disabled={loading} onClick={() => { setRejectReason(''); setRejectModal(true); }} className="w-full py-2.5 flex items-center justify-center gap-2 bg-white border-2 border-red-100 text-red-600 text-sm font-bold rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50">
+                          <XCircle size={16} /> Rechazar
                         </button>
                       )}
                     </div>
@@ -878,6 +1145,44 @@ export default function RegistrarGasto({
           )}
         </div>
       </div>
+
+      {/* Modal de motivo de rechazo */}
+      <Modal isOpen={rejectModal} onClose={() => setRejectModal(false)} title="Rechazar Gasto">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl p-4">
+            <AlertTriangle size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">
+              Esta acción cambiará el estado del gasto a <strong>RECHAZADO</strong> y no podrá deshacerse desde este módulo.
+            </p>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-700 mb-1.5 block">Motivo del rechazo <span className="text-gray-400 font-normal">(opcional)</span></label>
+            <textarea
+              value={rejectReason}
+              onChange={e => setRejectReason(e.target.value)}
+              rows={3}
+              placeholder="Ej: Factura duplicada, monto incorrecto, falta soporte..."
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500/20 focus:border-red-400 outline-none resize-none"
+            />
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <button
+              onClick={() => setRejectModal(false)}
+              className="px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleRejectConfirm}
+              disabled={loading}
+              className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+              Confirmar Rechazo
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

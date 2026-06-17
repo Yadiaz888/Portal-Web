@@ -9,17 +9,48 @@ export const registerSapRoutes = (app: FastifyInstance) => {
   app.get('/facturas', {
     schema: {
       tags: ['SAP'],
-      description: 'Busca facturas en SAP por NIT y/o Fecha de Emisión',
+      description: 'Busca facturas electrónicas por NIT y/o rango de fechas',
       security: [{ bearerAuth: [] }],
       querystring: {
         type: 'object',
         properties: {
-          nit: { type: 'string' },
-          fechaEmision: { type: 'string' },
+          nit:      { type: 'string' },
+          dateFrom: { type: 'string' },
+          dateTo:   { type: 'string' },
         },
       },
     },
   }, SapController.searchFacturas);
+
+  app.get('/facturas/:globalDocumentId', {
+    schema: {
+      tags: ['SAP'],
+      description: 'Obtiene PDF y XML de una factura por GlobalDocumentId',
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        properties: {
+          globalDocumentId: { type: 'string' },
+        },
+        required: ['globalDocumentId'],
+      },
+    },
+  }, SapController.getFacturaDocumentos);
+
+  app.get('/facturas/:globalDocumentId/pdf', {
+    schema: {
+      tags: ['SAP'],
+      description: 'Sirve el PDF binario de una factura electrónica',
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        properties: {
+          globalDocumentId: { type: 'string' },
+        },
+        required: ['globalDocumentId'],
+      },
+    },
+  }, SapController.getFacturaPdf);
 
   app.post('/xml', {
     schema: {
@@ -30,4 +61,3 @@ export const registerSapRoutes = (app: FastifyInstance) => {
     },
   }, XmlController.extractData);
 };
-

@@ -89,8 +89,8 @@ async function assignPermissions(roleId: number, perms: PermRecord[]) {
 async function configureRolePermissions(roles: Record<string, { id: number; name: string }>, permissions: PermRecord[]) {
   await assignPermissions(roles.ADMIN.id, permissions);
 
-  // MANAGER: puede ver todo, aprobar jefe (facturas/anticipos), enviar gasto a contabilidad
-  const managerActions = ['create', 'read', 'update', 'approve', 'reject', 'send_to_approval_accountant'];
+  // MANAGER: puede ver todo, crear sus propios gastos, enviarlos a aprobación, aprobar los de su equipo y enviarlos a contabilidad
+  const managerActions = ['create', 'read', 'update', 'approve', 'reject', 'send_to_approval_manager', 'send_to_approval_accountant', 'delete'];
   await assignPermissions(roles.MANAGER.id, permissions.filter(permission =>
     (mainResources.includes(permission.resource) && managerActions.includes(permission.action)) ||
     (permission.resource === 'user' && permission.action === 'read') ||

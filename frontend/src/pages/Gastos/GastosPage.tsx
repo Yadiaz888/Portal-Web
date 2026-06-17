@@ -302,7 +302,7 @@ export default function GastosPage() {
                     setDeleteId(row.id);
                   }
                 }}
-                actionItems={['Ver detalle', 'Editar', 'Eliminar']}
+                actionItems={getActionItems}
               />
             )}
           </div>

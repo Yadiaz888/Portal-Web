@@ -11,7 +11,7 @@ interface DataTableProps<T extends { id: string }> {
   columns: Column<T>[];
   data: T[];
   onRowAction?: (action: string, row: T) => void;
-  actionItems?: string[];
+  actionItems?: string[] | ((row: T) => string[]);
 }
 
 export default function DataTable<T extends { id: string }>({
@@ -95,13 +95,13 @@ export default function DataTable<T extends { id: string }>({
                     <MoreVertical size={16} className="text-gray-500" />
                   </button>
                   {openMenu === row.id && (
-                    <div 
+                    <div
                       ref={menuRef}
                       className={`absolute right-4 z-50 bg-white rounded-lg shadow-lg border border-gray-100 py-1 min-w-[140px] ${
                         isNearBottom ? 'bottom-8' : 'top-8'
                       }`}
                     >
-                      {actionItems.map(item => (
+                      {(typeof actionItems === 'function' ? actionItems(row) : actionItems).map(item => (
                         <button
                           key={item}
                           className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
