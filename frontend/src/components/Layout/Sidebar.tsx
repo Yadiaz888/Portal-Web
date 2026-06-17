@@ -42,14 +42,10 @@ export default function Sidebar() {
     <aside className={`${isCollapsed ? 'w-20' : 'w-64'} min-h-screen bg-white border-r border-gray-100 flex flex-col shrink-0 transition-all duration-300 relative`}>
       <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-5'} border-b border-gray-100 transition-all`}>
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8 shrink-0">
-            <circle cx="16" cy="16" r="16" fill="#B0003A"/>
-            <text x="16" y="21" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="11" fill="white" textAnchor="middle">cos</text>
-          </svg>
-          {!isCollapsed && (
-            <span className="text-lg leading-none transition-opacity duration-300 whitespace-nowrap font-normal">
-              <span className="text-[#B0003A] font-light tracking-tight">ceres</span><span className="text-[#B0003A] font-bold">cos</span>
-            </span>
+          {isCollapsed ? (
+            <img src="/ceresco-logo.png" alt="Ceresco" className="h-7 object-contain" />
+          ) : (
+            <img src="/ceresco-logo.png" alt="Ceresco" className="h-7 object-contain" />
           )}
         </div>
         {!isCollapsed && (

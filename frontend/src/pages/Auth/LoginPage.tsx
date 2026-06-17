@@ -30,11 +30,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex items-center justify-center mb-6">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60" className="h-12">
-            <text x="0" y="46" fontFamily="Arial,sans-serif" fontWeight="300" fontSize="46" fill="#B0003A" letterSpacing="-1">ceres</text>
-            <circle cx="188" cy="30" r="30" fill="#B0003A"/>
-            <text x="188" y="39" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="20" fill="white" textAnchor="middle">cos</text>
-          </svg>
+          <img src="/ceresco-logo.png" alt="Ceresco" className="h-14 object-contain" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Inicia sesión en tu cuenta
