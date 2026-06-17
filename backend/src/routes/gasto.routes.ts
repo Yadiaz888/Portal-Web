@@ -39,6 +39,19 @@ export const registerGastoRoutes = (app: FastifyInstance) => {
     },
   }, GastoController.getAll);
 
+  app.get('/nits', {
+    preHandler: [requirePermission('read', 'gasto')],
+    schema: {
+      tags: ['Gastos'],
+      description: 'Sugerencias de NIT proveedor para autocomplete',
+      security: [{ bearerAuth: [] }],
+      querystring: {
+        type: 'object',
+        properties: { q: { type: 'string' } },
+      },
+    },
+  }, GastoController.getNitSuggestions);
+
   app.get('/liquidacion/:legalizacionId', {
     preHandler: [requirePermission('read', 'gasto')],
     schema: {

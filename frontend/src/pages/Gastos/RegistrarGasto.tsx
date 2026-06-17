@@ -13,6 +13,7 @@ import {
   createGasto, updateGasto,
   liquidateGasto, rejectGasto,
   sendGastoToManager, sendGastoToAccountant,
+  getNitSuggestions, NitSuggestion,
 } from '../../api/gastos';
 import { searchSapFactura, getSapFacturaDocumentos, getSapFacturaPdfBlobUrl, extractXmlData } from '../../api/sap';
 import { extractOcrData } from '../../api/ocr';
@@ -168,6 +169,8 @@ export default function RegistrarGasto({
   const { notify } = useToast();
   const [loading, setLoading] = useState(false);
   const [gasto, setGasto] = useState<GastoItem | null>(initialData ?? null);
+  const [nitSuggestions, setNitSuggestions] = useState<NitSuggestion[]>([]);
+  const [showNitDropdown, setShowNitDropdown] = useState(false);
 
   const role: string = (user as any)?.role?.name ?? (user as any)?.role ?? '';
   const isAdmin = role === 'ADMIN';
@@ -914,9 +917,52 @@ export default function RegistrarGasto({
               </div>
               <div className="p-5 grid grid-cols-2 gap-5">
                 {/* Fila 1: Proveedor */}
-                <div>
+                <div className="relative">
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">NIT del Proveedor</label>
-                  <input type="text" value={form.nitProveedor} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('nitProveedor', e.target.value)} placeholder="Ej: 900.123.456-7" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500" />
+                  <input
+                    type="text"
+                    value={form.nitProveedor}
+                    disabled={isReadOnly || (!canEdit && mode !== 'create')}
+                    placeholder="Ej: 900.123.456-7"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500"
+                    onChange={async e => {
+                      const val = e.target.value;
+                      setField('nitProveedor', val);
+                      if (val.length >= 2) {
+                        const sugs = await getNitSuggestions(val);
+                        setNitSuggestions(sugs);
+                        setShowNitDropdown(sugs.length > 0);
+                      } else {
+                        setShowNitDropdown(false);
+                      }
+                    }}
+                    onBlur={() => setTimeout(() => setShowNitDropdown(false), 150)}
+                    onFocus={async () => {
+                      if (form.nitProveedor.length >= 2) {
+                        const sugs = await getNitSuggestions(form.nitProveedor);
+                        setNitSuggestions(sugs);
+                        setShowNitDropdown(sugs.length > 0);
+                      }
+                    }}
+                  />
+                  {showNitDropdown && (
+                    <ul className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                      {nitSuggestions.map(s => (
+                        <li
+                          key={s.nit}
+                          onMouseDown={() => {
+                            setField('nitProveedor', s.nit);
+                            if (s.razonSocial) setField('razonSocial', s.razonSocial);
+                            setShowNitDropdown(false);
+                          }}
+                          className="px-3 py-2 text-sm cursor-pointer hover:bg-[#B0003A]/5 flex flex-col"
+                        >
+                          <span className="font-semibold text-gray-800">{s.nit}</span>
+                          {s.razonSocial && <span className="text-xs text-gray-500">{s.razonSocial}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Razón Social</label>

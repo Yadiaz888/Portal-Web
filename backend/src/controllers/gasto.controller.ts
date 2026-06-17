@@ -132,4 +132,11 @@ export const GastoController = {
     const ficha = await GastoService.getFichaLiquidacion(Number(legalizacionId));
     return reply.send(ficha);
   },
+
+  /** GET /api/v1/gastos/nits?q=... */
+  async getNitSuggestions(request: FastifyRequest, reply: FastifyReply) {
+    const { q } = request.query as { q?: string };
+    const suggestions = await GastoService.getNitSuggestions(q ?? '');
+    return reply.send(suggestions);
+  },
 };

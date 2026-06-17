@@ -116,3 +116,10 @@ export const rejectGasto = async (id: number, reason?: string): Promise<GastoIte
   const response = await client.post<GastoItem>(`/api/v1/gastos/${id}/reject`, { reason });
   return response.data;
 };
+
+export interface NitSuggestion { nit: string; razonSocial: string; }
+
+export const getNitSuggestions = async (q: string): Promise<NitSuggestion[]> => {
+  const response = await client.get<NitSuggestion[]>('/api/v1/gastos/nits', { params: { q } });
+  return response.data;
+};

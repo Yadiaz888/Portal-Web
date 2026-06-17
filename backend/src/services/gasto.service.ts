@@ -3,6 +3,7 @@ import { stateTransitionRepository } from '../repositories/stateTransition.repos
 import { logActivity } from './activityLog.service.js';
 import { HttpError } from '../errors/httpError.js';
 import { CreateGastoDto, UpdateGastoDto } from '../dto/gasto.dto.js';
+import { prisma } from '../lib/prisma.js';
 
 /**
  * Flujo de estados para Gastos (módulo "Registrar Gasto"):
@@ -223,5 +224,21 @@ export const GastoService = {
       saldo: -total,
       detalleFacturas,
     };
+  },
+
+  async getNitSuggestions(q: string) {
+    const rows = await prisma.gasto.findMany({
+      where: {
+        deletedAt: null,
+        nitProveedor: { not: null, contains: q },
+      },
+      select: { nitProveedor: true, razonSocial: true },
+      distinct: ['nitProveedor'],
+      take: 8,
+      orderBy: { nitProveedor: 'asc' },
+    });
+    return rows
+      .filter(r => r.nitProveedor)
+      .map(r => ({ nit: r.nitProveedor!, razonSocial: r.razonSocial ?? '' }));
   },
 };
