@@ -5,6 +5,7 @@ const COMPLETED_STATUSES = ['COMPLETED', 'PAID'];
 const REJECTED_STATUSES = ['REJECTED', 'CANCELLED'];
 
 const STATUS_PROGRESS: Record<string, number> = {
+  // Anticipo / Factura / Viatico
   PENDING: 25,
   APPROVED_MANAGER: 50,
   APPROVED_ACCOUNTANT: 75,
@@ -12,6 +13,27 @@ const STATUS_PROGRESS: Record<string, number> = {
   PAID: 100,
   REJECTED: 100,
   CANCELLED: 100,
+  // Gasto
+  CREADO: 15,
+  ENVIADO_A_JEFE: 40,
+  ENVIADO_A_CONTABILIDAD: 70,
+  LIQUIDADO: 100,
+  RECHAZADO: 100,
+};
+
+const ACTION_PROGRESS: Record<string, number> = {
+  CREATE: 15,
+  UPDATE: 15,
+  DELETE: 0,
+  SEND_TO_MANAGER: 40,
+  APPROVE_MANAGER: 50,
+  SEND_TO_ACCOUNTANT: 70,
+  APPROVE_ACCOUNTANT: 75,
+  COMPLETE: 90,
+  PAY: 100,
+  LIQUIDATE: 100,
+  REJECT: 100,
+  CANCEL: 100,
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -128,7 +150,7 @@ function getProgressFromActivity(action: string, details?: string | null) {
 
   return {
     toState,
-    percent: STATUS_PROGRESS[toState ?? ''] ?? (action === 'CREATE' ? STATUS_PROGRESS.PENDING : 0),
+    percent: STATUS_PROGRESS[toState ?? ''] ?? ACTION_PROGRESS[action] ?? 0,
   };
 }
 

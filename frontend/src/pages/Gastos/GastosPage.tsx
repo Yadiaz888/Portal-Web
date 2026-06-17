@@ -268,7 +268,7 @@ export default function GastosPage() {
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
             <div className="flex items-center gap-3 p-4 border-b border-gray-100">
               <SearchInput
                 placeholder="Buscar por descripción, tipo, estado..."
@@ -286,24 +286,26 @@ export default function GastosPage() {
                 Cargando gastos...
               </div>
             ) : (
-              <DataTable
-                columns={columns}
-                data={filtered}
-                onRowAction={(action, row) => {
-                  if (action === 'Ver detalle') {
-                    setSelected(row);
-                    setFormMode('view');
-                    setActiveTab(1);
-                  } else if (action === 'Editar') {
-                    setSelected(row);
-                    setFormMode('edit');
-                    setActiveTab(1);
-                  } else if (action === 'Eliminar') {
-                    setDeleteId(row.id);
-                  }
-                }}
-                actionItems={getActionItems}
-              />
+              <div className="overflow-x-auto">
+                <DataTable
+                  columns={columns}
+                  data={filtered}
+                  onRowAction={(action, row) => {
+                    if (action === 'Ver detalle') {
+                      setSelected(row);
+                      setFormMode('view');
+                      setActiveTab(1);
+                    } else if (action === 'Editar') {
+                      setSelected(row);
+                      setFormMode('edit');
+                      setActiveTab(1);
+                    } else if (action === 'Eliminar') {
+                      setDeleteId(row.id);
+                    }
+                  }}
+                  actionItems={getActionItems}
+                />
+              </div>
             )}
           </div>
         </div>
