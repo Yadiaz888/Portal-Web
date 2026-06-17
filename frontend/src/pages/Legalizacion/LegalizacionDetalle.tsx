@@ -114,7 +114,7 @@ export default function LegalizacionDetalle() {
             </button>
             <button
               onClick={confirmarEliminacion}
-              className="px-4 py-2 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors"
+              className="px-4 py-2 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors"
             >
               Eliminar
             </button>
@@ -134,7 +134,7 @@ export default function LegalizacionDetalle() {
         {/* Delete button */}
         <button
           onClick={() => setDeleteModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-[#E8450A] border border-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors"
+          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-[#B0003A] border border-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors"
         >
           <Trash2 size={16} />
           Eliminar
@@ -153,7 +153,7 @@ export default function LegalizacionDetalle() {
               key={tab}
               onClick={() => setActiveTab(i)}
               className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === i
-                  ? 'text-[#E8450A] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#E8450A]'
+                  ? 'text-[#B0003A] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#B0003A]'
                   : 'text-gray-400 hover:text-gray-600'
                 }`}
             >

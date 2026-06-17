@@ -42,14 +42,13 @@ export default function Sidebar() {
     <aside className={`${isCollapsed ? 'w-20' : 'w-64'} min-h-screen bg-white border-r border-gray-100 flex flex-col shrink-0 transition-all duration-300 relative`}>
       <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-5'} border-b border-gray-100 transition-all`}>
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className="w-8 h-8 shrink-0">
-            <rect width="40" height="40" rx="9" fill="#1A1F36"/>
-            <rect x="5" y="5" width="30" height="30" rx="6" fill="#E8450A"/>
-            <text x="20" y="27" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="17" fill="white" textAnchor="middle" letterSpacing="-0.5">JT</text>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8 shrink-0">
+            <circle cx="16" cy="16" r="16" fill="#B0003A"/>
+            <text x="16" y="21" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="11" fill="white" textAnchor="middle">cos</text>
           </svg>
           {!isCollapsed && (
-            <span className="font-bold text-[#1A1F36] text-lg leading-none transition-opacity duration-300 whitespace-nowrap">
-              justtime<span className="text-[#E8450A]">GV</span>
+            <span className="text-lg leading-none transition-opacity duration-300 whitespace-nowrap font-normal">
+              <span className="text-[#B0003A] font-light tracking-tight">ceres</span><span className="text-[#B0003A] font-bold">cos</span>
             </span>
           )}
         </div>
@@ -83,7 +82,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-[#E8450A] text-white shadow-sm'
+                  ? 'bg-[#B0003A] text-white shadow-sm'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-[#1A1F36]'
               }`
             }
@@ -119,9 +118,9 @@ export default function Sidebar() {
         {!isCollapsed && (
           <div className="mt-4 px-2 text-center">
             <p className="text-[10px] text-gray-400">
-              Copyright 2025 JustTime Consulting Group
+              Copyright 2025 Ceresco
             </p>
-            <p className="text-[10px] text-[#E8450A] mt-1 cursor-pointer hover:underline">
+            <p className="text-[10px] text-[#B0003A] mt-1 cursor-pointer hover:underline">
               Politica de Privacidad
             </p>
           </div>

@@ -39,7 +39,7 @@ export default function Topbar() {
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-3 cursor-pointer group hover:opacity-90 select-none"
         >
-          <div className="w-9 h-9 rounded-full bg-[#E8450A] flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-9 h-9 rounded-full bg-[#B0003A] flex items-center justify-center text-white font-bold text-sm">
             {initials}
           </div>
           <div className="text-right hidden sm:block">

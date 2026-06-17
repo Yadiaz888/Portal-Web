@@ -36,7 +36,7 @@ function GeneralTab() {
             <input
               value={form.nombreCompleto}
               onChange={e => setField('nombreCompleto', e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]"
             />
           </div>
           <div>
@@ -45,7 +45,7 @@ function GeneralTab() {
               type="email"
               value={form.email}
               onChange={e => setField('email', e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]"
             />
           </div>
           <div>
@@ -53,7 +53,7 @@ function GeneralTab() {
             <input
               value={form.telefono}
               onChange={e => setField('telefono', e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]"
             />
           </div>
           <div>
@@ -72,7 +72,7 @@ function GeneralTab() {
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
             />
           </div>
-          <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors">
+          <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors">
             <Save size={16} />
             Guardar Cambios
           </button>
@@ -85,7 +85,7 @@ function GeneralTab() {
           <div className="space-y-3">
             <div>
               <label className="text-xs text-gray-500 mb-1 block font-medium">Idioma</label>
-              <select className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]">
+              <select className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]">
                 <option>Español (Colombia)</option>
                 <option>Inglés</option>
                 <option>Portugués</option>
@@ -93,7 +93,7 @@ function GeneralTab() {
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block font-medium">Zona Horaria</label>
-              <select className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]">
+              <select className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]">
                 <option>GMT -5 (Bogotá)</option>
                 <option>GMT -4 (Caracas)</option>
                 <option>GMT -3 (Buenos Aires)</option>
@@ -156,7 +156,7 @@ function SeguridadTab() {
                 type={showPass ? 'text' : 'password'}
                 value={passwords.actual}
                 onChange={e => setField('actual', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]"
               />
               <button
                 type="button"
@@ -174,7 +174,7 @@ function SeguridadTab() {
                 type={showNewPass ? 'text' : 'password'}
                 value={passwords.nueva}
                 onChange={e => setField('nueva', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]"
               />
               <button
                 type="button"
@@ -191,13 +191,13 @@ function SeguridadTab() {
               type="password"
               value={passwords.confirmacion}
               onChange={e => setField('confirmacion', e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]"
             />
           </div>
           <button
             type="submit"
             disabled={!passwords.actual || !passwords.nueva || passwords.nueva !== passwords.confirmacion || loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors disabled:bg-[#E8450A]/40 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors disabled:bg-[#B0003A]/40 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
             Actualizar Contraseña
@@ -270,7 +270,7 @@ function PermisosTab() {
   }
 
   if (loading) {
-    return <div className="p-8 text-center"><Loader2 className="animate-spin mx-auto text-[#E8450A]" size={24} /></div>;
+    return <div className="p-8 text-center"><Loader2 className="animate-spin mx-auto text-[#B0003A]" size={24} /></div>;
   }
 
   return (
@@ -282,7 +282,7 @@ function PermisosTab() {
         </h3>
         <div className="space-y-4">
           {roles.map(role => (
-            <div key={role.id} className="border border-gray-200 rounded-lg p-4 hover:border-[#E8450A]/30 transition-colors">
+            <div key={role.id} className="border border-gray-200 rounded-lg p-4 hover:border-[#B0003A]/30 transition-colors">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h4 className="text-sm font-bold text-[#1A1F36]">{role.nombre}</h4>
@@ -333,7 +333,7 @@ function PermisosTab() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <button className="text-xs text-[#E8450A] hover:underline font-medium disabled:opacity-50" disabled>Editar</button>
+                      <button className="text-xs text-[#B0003A] hover:underline font-medium disabled:opacity-50" disabled>Editar</button>
                     </td>
                   </tr>
                 )
@@ -364,7 +364,7 @@ export default function ConfiguracionesPage() {
               key={tab}
               onClick={() => setActiveTab(i)}
               className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === i
-                  ? 'text-[#E8450A] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#E8450A]'
+                  ? 'text-[#B0003A] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#B0003A]'
                   : 'text-gray-400 hover:text-gray-600'
                 }`}
             >

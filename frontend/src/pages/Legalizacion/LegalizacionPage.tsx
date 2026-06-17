@@ -102,7 +102,7 @@ export default function LegalizacionPage() {
               key={tab}
               className={`pb-3 text-sm font-semibold transition-colors relative ${
                 i === 0
-                  ? 'text-[#E8450A] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#E8450A]'
+                  ? 'text-[#B0003A] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#B0003A]'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
               onClick={i === 1 ? handleOpenSearchModal : undefined}
@@ -121,7 +121,7 @@ export default function LegalizacionPage() {
           <div className="flex gap-3">
             <button
               onClick={handleOpenSearchModal}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors"
             >
               <Receipt size={16} />
               Legalizar pagos
@@ -178,7 +178,7 @@ export default function LegalizacionPage() {
               setErrorBusqueda('');
             }}
             placeholder="Buscar por No. de Solicitud / Expediente"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]"
           />
           {errorBusqueda && (
             <p className="text-xs text-red-500 font-medium">{errorBusqueda}</p>
@@ -206,7 +206,7 @@ export default function LegalizacionPage() {
             </button>
             <button
               onClick={confirmarEliminacion}
-              className="px-4 py-2 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors"
+              className="px-4 py-2 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors"
             >
               Eliminar
             </button>

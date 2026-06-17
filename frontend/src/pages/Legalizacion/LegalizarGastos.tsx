@@ -71,7 +71,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                 disabled={isReadOnly}
                 checked={block.tipo === t}
                 onChange={() => onChange('tipo', t)}
-                className="accent-[#E8450A]"
+                className="accent-[#B0003A]"
               />
               <span className="text-sm font-medium text-gray-700">{t}</span>
             </label>
@@ -91,13 +91,13 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                     type="text"
                     disabled={isReadOnly}
                     placeholder="Razón Social"
-                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                   />
                   <input
                     type="text"
                     disabled={isReadOnly}
                     placeholder="N° Factura"
-                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                   />
                   <button 
                     disabled={isReadOnly}
@@ -113,7 +113,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                       value={block.razonSocial}
                       disabled={isReadOnly}
                       onChange={e => onChange('razonSocial', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                     />
                   </div>
                   <div>
@@ -122,7 +122,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                       value={block.nFactura}
                       disabled={isReadOnly}
                       onChange={e => onChange('nFactura', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                     />
                   </div>
                 </div>
@@ -142,7 +142,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                       value={block.nFactura}
                       disabled={isReadOnly}
                       onChange={e => onChange('nFactura', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                     />
                   </div>
                 )}
@@ -153,7 +153,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                       value={block.tipoGasto}
                       disabled={isReadOnly}
                       onChange={e => onChange('tipoGasto', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                     >
                       <option value="">Seleccionar</option>
                       {tiposGasto.map(t => <option key={t} value={t}>{t}</option>)}
@@ -167,7 +167,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                     value={block.montoTotal}
                     disabled={isReadOnly}
                     onChange={e => onChange('montoTotal', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                   />
                 </div>
                 <div>
@@ -179,7 +179,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                       value={block.fechaInicio}
                       disabled={isReadOnly}
                       onChange={e => onChange('fechaInicio', e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                     />
                   </div>
                 </div>
@@ -192,7 +192,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                       value={block.tipoComprobante}
                       disabled={isReadOnly}
                       onChange={e => onChange('tipoComprobante', e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                     />
                   </div>
                 </div>
@@ -203,7 +203,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                       value={block.tipoGasto}
                       disabled={isReadOnly}
                       onChange={e => onChange('tipoGasto', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50 disabled:text-gray-400"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50 disabled:text-gray-400"
                     >
                       <option value="">Seleccionar</option>
                       {tiposGasto.map(t => <option key={t} value={t}>{t}</option>)}
@@ -217,7 +217,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                     disabled={isReadOnly}
                     onChange={e => onChange('descripcion', e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] resize-none disabled:bg-gray-50 disabled:text-gray-400"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] resize-none disabled:bg-gray-50 disabled:text-gray-400"
                   />
                 </div>
               </div>
@@ -257,7 +257,7 @@ function GastoDetalle({ n, block, onChange, onAgregar, onAgregarGasto, isReadOnl
                 Nuevo gasto
               </button>
             )}
-            <button className="px-4 py-2 text-sm font-semibold text-[#E8450A] border border-[#E8450A] rounded-lg hover:bg-orange-50 transition-colors disabled:opacity-50">
+            <button className="px-4 py-2 text-sm font-semibold text-[#B0003A] border border-[#B0003A] rounded-lg hover:bg-orange-50 transition-colors disabled:opacity-50">
               Guardar
             </button>
             <button className="px-4 py-2 text-sm font-semibold text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">

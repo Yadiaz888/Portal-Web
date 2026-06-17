@@ -87,7 +87,7 @@ export default function FichaLiquidacion({
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-1">Gastos liquidados</p>
-              <p className="text-2xl font-bold text-[#E8450A]">{formatCurrency(ficha.gastosLiquidados)}</p>
+              <p className="text-2xl font-bold text-[#B0003A]">{formatCurrency(ficha.gastosLiquidados)}</p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-1">Saldo</p>
@@ -111,7 +111,7 @@ export default function FichaLiquidacion({
                 {estado === 'Creado' && (
                   <button 
                     onClick={() => handleUpdateEstado('Enviado a Aprobacion')}
-                    className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors"
                   >
                     <Mail size={16} />
                     Enviar a Aprobación
@@ -223,7 +223,7 @@ export default function FichaLiquidacion({
                       type="checkbox"
                       checked={selectedIndices.length === ficha.detalleFacturas.length && ficha.detalleFacturas.length > 0}
                       onChange={toggleAll}
-                      className="rounded border-gray-300 text-[#E8450A] focus:ring-[#E8450A]"
+                      className="rounded border-gray-300 text-[#B0003A] focus:ring-[#B0003A]"
                     />
                   </th>
                 )}
@@ -243,7 +243,7 @@ export default function FichaLiquidacion({
                         type="checkbox"
                         checked={selectedIndices.includes(idx)}
                         onChange={() => toggleIndex(idx)}
-                        className="rounded border-gray-300 text-[#E8450A] focus:ring-[#E8450A]"
+                        className="rounded border-gray-300 text-[#B0003A] focus:ring-[#B0003A]"
                       />
                     </td>
                   )}
@@ -285,7 +285,7 @@ export default function FichaLiquidacion({
             </button>
             <button 
               onClick={() => handleUpdateEstado('Enviado a Aprobacion')}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors"
             >
               <Mail size={16} />
               Enviar a aprobacion
@@ -309,7 +309,7 @@ export default function FichaLiquidacion({
             </button>
             <button
               onClick={handleEliminar}
-              className="px-4 py-2 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors"
+              className="px-4 py-2 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors"
             >
               Eliminar
             </button>

@@ -56,7 +56,7 @@ export default function DataTable<T extends { id: string }>({
                 type="checkbox"
                 checked={selected.size === data.length && data.length > 0}
                 onChange={toggleAll}
-                className="rounded border-gray-300 text-[#E8450A] focus:ring-[#E8450A]"
+                className="rounded border-gray-300 text-[#B0003A] focus:ring-[#B0003A]"
               />
             </th>
             {columns.map(col => (
@@ -79,7 +79,7 @@ export default function DataTable<T extends { id: string }>({
                     type="checkbox"
                     checked={selected.has(row.id)}
                     onChange={() => toggleRow(row.id)}
-                    className="rounded border-gray-300 text-[#E8450A] focus:ring-[#E8450A]"
+                    className="rounded border-gray-300 text-[#B0003A] focus:ring-[#B0003A]"
                   />
                 </td>
                 {columns.map(col => (

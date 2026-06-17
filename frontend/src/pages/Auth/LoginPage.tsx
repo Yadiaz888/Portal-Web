@@ -29,13 +29,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex items-center justify-center gap-2 overflow-hidden mb-6">
-          <div className="w-10 h-10 bg-[#E8450A] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[#E8450A]/20">
-            <span className="text-white font-bold text-xl">S</span>
-          </div>
-          <span className="font-bold text-[#1A1F36] text-2xl leading-none">
-            justtime<span className="text-[#E8450A]">Gv</span>
-          </span>
+        <div className="flex items-center justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60" className="h-12">
+            <text x="0" y="46" fontFamily="Arial,sans-serif" fontWeight="300" fontSize="46" fill="#B0003A" letterSpacing="-1">ceres</text>
+            <circle cx="188" cy="30" r="30" fill="#B0003A"/>
+            <text x="188" y="39" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="20" fill="white" textAnchor="middle">cos</text>
+          </svg>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Inicia sesión en tu cuenta
@@ -67,7 +66,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="focus:ring-[#E8450A] focus:border-[#E8450A] block w-full pl-10 sm:text-sm border-gray-300 rounded-xl px-4 py-3 border outline-none transition-colors"
+                  className="focus:ring-[#B0003A] focus:border-[#B0003A] block w-full pl-10 sm:text-sm border-gray-300 rounded-xl px-4 py-3 border outline-none transition-colors"
                   placeholder="ejemplo@portal.com"
                 />
               </div>
@@ -89,7 +88,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="focus:ring-[#E8450A] focus:border-[#E8450A] block w-full pl-10 sm:text-sm border-gray-300 rounded-xl px-4 py-3 border outline-none transition-colors"
+                  className="focus:ring-[#B0003A] focus:border-[#B0003A] block w-full pl-10 sm:text-sm border-gray-300 rounded-xl px-4 py-3 border outline-none transition-colors"
                   placeholder="••••••••"
                 />
               </div>
@@ -99,7 +98,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-[#E8450A] hover:bg-[#E8450A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E8450A] transition-all ${isLoading ? 'opacity-75 cursor-not-allowed' : ''}`}
+                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-[#B0003A] hover:bg-[#B0003A]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B0003A] transition-all ${isLoading ? 'opacity-75 cursor-not-allowed' : ''}`}
               >
                 {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
               </button>

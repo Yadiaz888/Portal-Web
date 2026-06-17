@@ -79,12 +79,12 @@ function ProgressTimeline({ status }: { status: GastoStatus }) {
             <div className="flex flex-col items-center">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 text-xs font-bold transition-all
                 ${done ? 'bg-green-500 border-green-500 text-white' :
-                  active ? 'bg-[#E8450A] border-[#E8450A] text-white shadow-md shadow-[#E8450A]/30' :
+                  active ? 'bg-[#B0003A] border-[#B0003A] text-white shadow-md shadow-[#B0003A]/30' :
                   'bg-white border-gray-200 text-gray-400'}`}>
                 {done ? <CheckCircle2 size={14} /> : i + 1}
               </div>
               <span className={`mt-1 text-[10px] font-semibold whitespace-nowrap
-                ${done ? 'text-green-600' : active ? 'text-[#E8450A]' : 'text-gray-400'}`}>
+                ${done ? 'text-green-600' : active ? 'text-[#B0003A]' : 'text-gray-400'}`}>
                 {step.label}
               </span>
             </div>
@@ -644,7 +644,7 @@ export default function RegistrarGasto({
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white shadow-sm border border-gray-100 rounded-xl flex items-center justify-center text-[#E8450A]">
+          <div className="w-10 h-10 bg-white shadow-sm border border-gray-100 rounded-xl flex items-center justify-center text-[#B0003A]">
             <ReceiptIcon origen={form.origen} />
           </div>
           <div>
@@ -916,21 +916,21 @@ export default function RegistrarGasto({
                 {/* Fila 1: Proveedor */}
                 <div>
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">NIT del Proveedor</label>
-                  <input type="text" value={form.nitProveedor} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('nitProveedor', e.target.value)} placeholder="Ej: 900.123.456-7" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50/80 disabled:text-gray-500" />
+                  <input type="text" value={form.nitProveedor} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('nitProveedor', e.target.value)} placeholder="Ej: 900.123.456-7" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Razón Social</label>
-                  <input type="text" value={form.razonSocial} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('razonSocial', e.target.value)} placeholder="Ej: Proveedor S.A.S" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50/80 disabled:text-gray-500" />
+                  <input type="text" value={form.razonSocial} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('razonSocial', e.target.value)} placeholder="Ej: Proveedor S.A.S" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500" />
                 </div>
 
                 {/* Fila 2: Factura */}
                 <div>
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Número de Factura</label>
-                  <input type="text" value={form.numeroFactura} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('numeroFactura', e.target.value)} placeholder="Ej: FE-1029" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50/80 disabled:text-gray-500" />
+                  <input type="text" value={form.numeroFactura} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('numeroFactura', e.target.value)} placeholder="Ej: FE-1029" className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Fecha de Emisión</label>
-                  <input type="date" value={form.fechaEmision} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('fechaEmision', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50/80 disabled:text-gray-500" />
+                  <input type="date" value={form.fechaEmision} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('fechaEmision', e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500" />
                 </div>
 
                 {/* Fila 3: Valores */}
@@ -938,14 +938,14 @@ export default function RegistrarGasto({
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Subtotal</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
-                    <input type="number" value={form.subtotal} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('subtotal', e.target.value)} className="w-full pl-7 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50/80 disabled:text-gray-500" />
+                    <input type="number" value={form.subtotal} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('subtotal', e.target.value)} className="w-full pl-7 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500" />
                   </div>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">IVA</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
-                    <input type="number" value={form.iva} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('iva', e.target.value)} className="w-full pl-7 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50/80 disabled:text-gray-500" />
+                    <input type="number" value={form.iva} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('iva', e.target.value)} className="w-full pl-7 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500" />
                   </div>
                 </div>
 
@@ -955,12 +955,12 @@ export default function RegistrarGasto({
                       <label className="text-xs font-bold text-gray-800 mb-1.5 block">Valor Total *</label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 font-bold">$</span>
-                        <input type="number" value={form.amount} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('amount', e.target.value)} className="w-full pl-7 pr-3 py-2.5 text-base font-bold text-gray-900 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-100 disabled:text-gray-600" />
+                        <input type="number" value={form.amount} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('amount', e.target.value)} className="w-full pl-7 pr-3 py-2.5 text-base font-bold text-gray-900 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-100 disabled:text-gray-600" />
                       </div>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Tipo de Documento</label>
-                      <select value={form.tipo} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('tipo', e.target.value as typeof form.tipo)} className="w-full px-3 py-2.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] disabled:bg-gray-50/80 disabled:text-gray-500">
+                      <select value={form.tipo} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('tipo', e.target.value as typeof form.tipo)} className="w-full px-3 py-2.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] disabled:bg-gray-50/80 disabled:text-gray-500">
                         {Object.entries(TIPO_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                       </select>
                     </div>
@@ -970,7 +970,7 @@ export default function RegistrarGasto({
                 {/* Fila 5: Concepto */}
                 <div className="col-span-2">
                   <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Concepto / Descripción</label>
-                  <textarea value={form.description} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('description', e.target.value)} rows={2} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A] resize-none disabled:bg-gray-50/80 disabled:text-gray-500" />
+                  <textarea value={form.description} disabled={isReadOnly || (!canEdit && mode !== 'create')} onChange={e => setField('description', e.target.value)} rows={2} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A] resize-none disabled:bg-gray-50/80 disabled:text-gray-500" />
                 </div>
               </div>
             </div>
@@ -1068,7 +1068,7 @@ export default function RegistrarGasto({
                     <>
                       <p className="text-xs text-gray-500">Revisa los datos antes de enviar a aprobación.</p>
                       {canSendToManager && (
-                        <button disabled={loading} onClick={() => doTransition(() => sendGastoToManager(gasto.id), 'Gasto enviado al jefe.')} className="w-full py-2.5 flex items-center justify-center gap-2 bg-[#E8450A] text-white text-sm font-bold rounded-xl hover:bg-[#E8450A]/90 transition-colors shadow-sm disabled:opacity-50">
+                        <button disabled={loading} onClick={() => doTransition(() => sendGastoToManager(gasto.id), 'Gasto enviado al jefe.')} className="w-full py-2.5 flex items-center justify-center gap-2 bg-[#B0003A] text-white text-sm font-bold rounded-xl hover:bg-[#B0003A]/90 transition-colors shadow-sm disabled:opacity-50">
                           {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Enviar a Aprobación
                         </button>
                       )}
@@ -1130,7 +1130,7 @@ export default function RegistrarGasto({
         <div className="flex gap-3 mt-8 pt-6 border-t border-gray-100">
           {mode === 'create' && (
             <>
-              <button onClick={handleAddAnother} type="button" className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-[#E8450A] bg-white border-2 border-[#E8450A]/20 rounded-xl hover:bg-[#E8450A]/5 transition-colors shadow-sm">
+              <button onClick={handleAddAnother} type="button" className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-[#B0003A] bg-white border-2 border-[#B0003A]/20 rounded-xl hover:bg-[#B0003A]/5 transition-colors shadow-sm">
                 <Plus size={18} /> Agregar Otro
               </button>
               <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#1A1F36] rounded-xl hover:bg-[#1A1F36]/90 transition-colors shadow-md disabled:opacity-60">
@@ -1139,7 +1139,7 @@ export default function RegistrarGasto({
             </>
           )}
           {canEdit && (
-            <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#E8450A] rounded-xl hover:bg-[#E8450A]/90 transition-colors shadow-md disabled:opacity-60">
+            <button onClick={handleSave} disabled={loading} className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#B0003A] rounded-xl hover:bg-[#B0003A]/90 transition-colors shadow-md disabled:opacity-60">
               {loading ? <Loader2 size={18} className="animate-spin" /> : null} Guardar Cambios
             </button>
           )}
@@ -1197,8 +1197,8 @@ function ReceiptIcon({ origen }: { origen: string }) {
 
 function OrigenOption({ icon, title, desc, active, onClick }: any) {
   return (
-    <div onClick={onClick} className={`cursor-pointer border-2 rounded-xl p-4 transition-all flex items-start gap-3 ${active ? 'border-[#E8450A] bg-[#E8450A]/5 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
-      <div className={`p-2 rounded-lg ${active ? 'bg-[#E8450A] text-white' : 'bg-gray-100 text-gray-500'}`}>
+    <div onClick={onClick} className={`cursor-pointer border-2 rounded-xl p-4 transition-all flex items-start gap-3 ${active ? 'border-[#B0003A] bg-[#B0003A]/5 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+      <div className={`p-2 rounded-lg ${active ? 'bg-[#B0003A] text-white' : 'bg-gray-100 text-gray-500'}`}>
         {icon}
       </div>
       <div>

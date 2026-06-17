@@ -158,7 +158,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                 disabled={isReadOnly}
                 value={nombre}
                 onChange={e => setNombre(e.target.value)}
-                className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
               />
             </div>
             <div>
@@ -167,7 +167,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                 disabled={isReadOnly}
                 value={identificacion}
                 onChange={e => setIdentificacion(e.target.value)}
-                className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
               />
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                 disabled={isReadOnly}
                 value={tipoAnticipo}
                 onChange={e => setTipoAnticipo(e.target.value)}
-                className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
               >
                 <option value="">Seleccionar tipo</option>
                 {tiposAnticipo.map(t => <option key={t} value={t}>{t}</option>)}
@@ -198,7 +198,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                 type="button"
                 disabled={isReadOnly}
                 onClick={() => !isReadOnly && setPaisOpen(!paisOpen)}
-                className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg text-left flex items-center justify-between ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg text-left flex items-center justify-between ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
               >
                 <span className={pais ? (isReadOnly ? 'text-gray-500' : 'text-gray-800') : 'text-gray-400'}>{pais || 'Seleccionar país'}</span>
                 <ChevronDown size={14} className="text-gray-400" />
@@ -211,7 +211,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                       value={paisSearch}
                       onChange={e => setPaisSearch(e.target.value)}
                       placeholder="Buscar país..."
-                      className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E8450A]"
+                      className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#B0003A]"
                       autoFocus
                     />
                   </div>
@@ -241,7 +241,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                   value={concepto}
                   onChange={e => setConcepto(e.target.value)}
                   placeholder="Ingrese el concepto"
-                  className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                  className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
                 />
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                       value={d.origen}
                       onChange={e => updateDestino(d.id, 'origen', e.target.value)}
                       placeholder="Ciudad origen"
-                      className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                      className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
                     />
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                       value={d.destino}
                       onChange={e => updateDestino(d.id, 'destino', e.target.value)}
                       placeholder="Ciudad destino"
-                      className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                      className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
                     />
                   </div>
                 </div>
@@ -296,7 +296,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                       disabled={isReadOnly}
                       value={d.fechaInicio}
                       onChange={e => updateDestino(d.id, 'fechaInicio', e.target.value)}
-                      className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                      className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
                     />
                   </div>
                 </div>
@@ -309,7 +309,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                       disabled={isReadOnly}
                       value={d.fechaFin}
                       onChange={e => updateDestino(d.id, 'fechaFin', e.target.value)}
-                      className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]'}`}
+                      className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg ${isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]'}`}
                     />
                   </div>
                 </div>
@@ -345,12 +345,12 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                   type="number"
                   value={montoInput}
                   onChange={e => setMontoInput(e.target.value)}
-                  className="flex-1 text-center text-xl font-bold border border-[#E8450A] rounded-lg px-2 py-1 focus:outline-none"
+                  className="flex-1 text-center text-xl font-bold border border-[#B0003A] rounded-lg px-2 py-1 focus:outline-none"
                   autoFocus
                 />
                 <button
                   onClick={() => { setMonto(Number(montoInput)); setEditandoMonto(false); }}
-                  className="px-3 py-1.5 bg-[#E8450A] text-white text-xs font-semibold rounded-lg"
+                  className="px-3 py-1.5 bg-[#B0003A] text-white text-xs font-semibold rounded-lg"
                 >
                   OK
                 </button>
@@ -382,7 +382,7 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                   <>
                     <button 
                       onClick={() => handleUpdateStatus('Enviado a Aprobacion')}
-                      className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold text-white bg-[#E8450A] rounded-lg hover:bg-[#E8450A]/90 transition-colors"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold text-white bg-[#B0003A] rounded-lg hover:bg-[#B0003A]/90 transition-colors"
                     >
                       <Mail size={16} />
                       Solicitar Anticipo
@@ -498,8 +498,8 @@ export default function SolicitarAnticipo({ mode = 'create', id, onStatusChange 
                   onClick={handleSave}
                   className={`flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold rounded-lg transition-all ${
                     formVacio
-                      ? 'bg-[#E8450A]/40 text-white cursor-not-allowed'
-                      : 'bg-[#E8450A] text-white hover:bg-[#E8450A]/90'
+                      ? 'bg-[#B0003A]/40 text-white cursor-not-allowed'
+                      : 'bg-[#B0003A] text-white hover:bg-[#B0003A]/90'
                   }`}
                 >
                   <Mail size={16} />

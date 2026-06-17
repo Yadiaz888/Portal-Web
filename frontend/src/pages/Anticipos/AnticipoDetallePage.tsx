@@ -91,7 +91,7 @@ export default function AnticipoDetallePage() {
                   step.completed 
                     ? 'border-green-500 text-green-500' 
                     : step.active 
-                    ? 'border-[#E8450A] text-[#E8450A]' 
+                    ? 'border-[#B0003A] text-[#B0003A]' 
                     : 'border-gray-200 text-gray-400'
                 }`}>
                   {step.completed ? (

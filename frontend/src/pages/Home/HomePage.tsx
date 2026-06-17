@@ -148,10 +148,10 @@ export default function HomePage() {
                 <button
                   key={label}
                   onClick={action}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-100 hover:border-[#E8450A]/30 hover:bg-orange-50/30 transition-all group"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-100 hover:border-[#B0003A]/30 hover:bg-orange-50/30 transition-all group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-gray-50 group-hover:bg-[#E8450A]/10 flex items-center justify-center transition-colors">
-                    <Icon size={20} className="text-[#1A1F36] group-hover:text-[#E8450A] transition-colors" />
+                  <div className="w-10 h-10 rounded-lg bg-gray-50 group-hover:bg-[#B0003A]/10 flex items-center justify-center transition-colors">
+                    <Icon size={20} className="text-[#1A1F36] group-hover:text-[#B0003A] transition-colors" />
                   </div>
                   <span className="text-xs font-medium text-gray-600 text-center leading-tight">{label}</span>
                 </button>
@@ -170,7 +170,7 @@ export default function HomePage() {
                 <p className="text-sm text-gray-500">Aun no hay actividad registrada.</p>
               ) : (
                 displayedActivities.map((item) => (
-                  <div key={item.id} className="flex items-start gap-3 border-l-2 border-[#E8450A] pl-3 py-1">
+                  <div key={item.id} className="flex items-start gap-3 border-l-2 border-[#B0003A] pl-3 py-1">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-gray-400">{item.label}</p>
                       <p className="text-sm font-semibold text-[#1A1F36] mt-0.5 leading-snug">{item.text}</p>
@@ -182,7 +182,7 @@ export default function HomePage() {
             </div>
             {dashboard.activities.length > 3 && (
               <button
-                className="mt-3 text-sm text-[#E8450A] font-medium hover:underline"
+                className="mt-3 text-sm text-[#B0003A] font-medium hover:underline"
                 onClick={() => setMostrarMas(!mostrarMas)}
               >
                 {mostrarMas ? 'Ver menos' : 'Ver mas'}
@@ -208,7 +208,7 @@ export default function HomePage() {
                   <button
                     key={`${request.entity}-${request.id}`}
                     onClick={() => navigate(request.detailPath)}
-                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2 text-left transition-colors hover:border-[#E8450A]/30 hover:bg-orange-50/30"
+                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2 text-left transition-colors hover:border-[#B0003A]/30 hover:bg-orange-50/30"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-[#1A1F36]">{request.number}</p>
@@ -236,7 +236,7 @@ export default function HomePage() {
                 <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip />
                 <Legend wrapperStyle={{ fontSize: 11 }} align="right" />
-                <Bar dataKey="Solicitudes" fill="#E8450A" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Solicitudes" fill="#B0003A" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="Aprobaciones" fill="#EAB308" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -254,7 +254,7 @@ export default function HomePage() {
               setErrorBusqueda('');
             }}
             placeholder="Buscar por No. de Solicitud / Expediente"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8450A]/20 focus:border-[#E8450A]"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B0003A]/20 focus:border-[#B0003A]"
           />
           {errorBusqueda && (
             <p className="text-xs font-medium text-red-500">{errorBusqueda}</p>

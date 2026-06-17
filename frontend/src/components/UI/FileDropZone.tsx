@@ -40,7 +40,7 @@ export default function FileDropZone({
         <p className="text-sm text-gray-500 text-center">{label}</p>
         <p className="text-xs text-center text-gray-400">
           Suelta los archivos aquí o haga clic en el{' '}
-          <label className="text-[#E8450A] cursor-pointer underline">
+          <label className="text-[#B0003A] cursor-pointer underline">
             enlace
             <input type="file" className="hidden" onChange={handleChange} accept={accept} />
           </label>

@@ -29,7 +29,7 @@ const styles = {
   info: {
     icon: Info,
     className: 'border-orange-100 bg-orange-50 text-[#1A1F36]',
-    iconClassName: 'text-[#E8450A]',
+    iconClassName: 'text-[#B0003A]',
   },
 };
 
