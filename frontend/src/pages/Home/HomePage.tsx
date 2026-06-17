@@ -163,19 +163,20 @@ export default function HomePage() {
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
               Ultima actividad
             </h2>
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {isLoading ? (
                 <p className="text-sm text-gray-500">Cargando actividad...</p>
               ) : displayedActivities.length === 0 ? (
                 <p className="text-sm text-gray-500">Aun no hay actividad registrada.</p>
               ) : (
                 displayedActivities.map((item) => (
-                  <div key={item.id} className="flex items-start gap-3 border-l-2 border-[#B0003A] pl-3 py-1">
+                  <div key={item.id} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5">
+                    <div className="w-2 h-2 rounded-full bg-[#B0003A] shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-400">{item.label}</p>
-                      <p className="text-sm font-semibold text-[#1A1F36] mt-0.5 leading-snug">{item.text}</p>
+                      <p className="text-sm text-gray-800 leading-snug">{item.text}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 font-medium">{item.label}</p>
                     </div>
-                    <CircularProgress percentage={item.percent} size={44} />
+                    <CircularProgress percentage={item.percent} size={40} />
                   </div>
                 ))
               )}

@@ -25,13 +25,18 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const ACTION_LABELS: Record<string, string> = {
-  CREATE: 'Solicitud creada',
-  APPROVE_MANAGER: 'Aprobación de jefe',
-  APPROVE_ACCOUNTANT: 'Aprobación de contabilidad',
-  COMPLETE: 'Solicitud completada',
+  CREATE: 'Registro creado',
+  UPDATE: 'Registro actualizado',
+  DELETE: 'Registro eliminado',
+  APPROVE_MANAGER: 'Aprobado por jefe',
+  APPROVE_ACCOUNTANT: 'Aprobado por contabilidad',
+  SEND_TO_MANAGER: 'Enviado a jefe',
+  SEND_TO_ACCOUNTANT: 'Enviado a contabilidad',
+  COMPLETE: 'Completado',
   PAY: 'Pago registrado',
-  REJECT: 'Solicitud rechazada',
-  CANCEL: 'Solicitud cancelada',
+  REJECT: 'Rechazado',
+  CANCEL: 'Cancelado',
+  LIQUIDATE: 'Liquidado',
 };
 
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -72,21 +77,37 @@ function getRequestNumber(entity: string, id?: number | null) {
   return id ? `${entity} No. ${id}` : entity;
 }
 
-function getActivityText(action: string, entity: string, entityId?: number | null, toState?: string) {
-  const requestNumber = getRequestNumber(entity, entityId);
+const ENTITY_LABELS: Record<string, string> = {
+  Anticipo: 'anticipo',
+  Factura: 'factura',
+  Gasto: 'gasto',
+  Viatico: 'viático',
+  Legalizacion: 'legalización',
+};
 
-  if (action === 'CREATE') return `Se creó ${requestNumber}`;
-  if (action === 'APPROVE_MANAGER') return `Se aprobó por jefe ${requestNumber}`;
-  if (action === 'APPROVE_ACCOUNTANT') return `Se aprobó por contabilidad ${requestNumber}`;
-  if (action === 'COMPLETE') return `Se completó ${requestNumber}`;
-  if (action === 'PAY') return `Se registró el pago de ${requestNumber}`;
-  if (action === 'REJECT') return `Se rechazó ${requestNumber}`;
-  if (action === 'CANCEL') return `Se canceló ${requestNumber}`;
+function getActivityText(action: string, entity: string, entityId?: number | null, toState?: string) {
+  const entityLabel = ENTITY_LABELS[entity] ?? entity.toLowerCase();
+  const num = entityId ? ` No. ${entityId}` : '';
+  const ref = `${entityLabel}${num}`;
+
+  if (action === 'CREATE') return `Se registró un nuevo ${ref}`;
+  if (action === 'UPDATE') return `Se actualizó el ${ref}`;
+  if (action === 'DELETE') return `Se eliminó el ${ref}`;
+  if (action === 'APPROVE_MANAGER') return `El jefe aprobó el ${ref}`;
+  if (action === 'APPROVE_ACCOUNTANT') return `Contabilidad aprobó el ${ref}`;
+  if (action === 'SEND_TO_MANAGER') return `Se envió el ${ref} a revisión del jefe`;
+  if (action === 'SEND_TO_ACCOUNTANT') return `Se envió el ${ref} a contabilidad`;
+  if (action === 'COMPLETE') return `Se completó el ${ref}`;
+  if (action === 'PAY') return `Se registró el pago del ${ref}`;
+  if (action === 'REJECT') return `Se rechazó el ${ref}`;
+  if (action === 'CANCEL') return `Se canceló el ${ref}`;
+  if (action === 'LIQUIDATE') return `Se liquidó el ${ref}`;
   if (action.startsWith('STATUS_CHANGE_')) {
-    return `Cambio de estado de ${requestNumber} a ${STATUS_LABELS[toState ?? ''] ?? toState ?? 'nuevo estado'}`;
+    const estadoLabel = STATUS_LABELS[toState ?? ''] ?? toState ?? 'nuevo estado';
+    return `El ${ref} cambió a "${estadoLabel}"`;
   }
 
-  return `${ACTION_LABELS[action] ?? action} en ${requestNumber}`;
+  return `${ACTION_LABELS[action] ?? action} — ${ref}`;
 }
 
 function getProgressFromActivity(action: string, details?: string | null) {
