@@ -1,8 +1,8 @@
 import { prisma } from '../lib/prisma.js';
 import { getActivityLogs } from './activityLog.service.js';
 
-const COMPLETED_STATUSES = ['COMPLETED', 'PAID'];
-const REJECTED_STATUSES = ['REJECTED', 'CANCELLED'];
+const COMPLETED_STATUSES = ['COMPLETED', 'PAID', 'LIQUIDADO'];
+const REJECTED_STATUSES = ['REJECTED', 'CANCELLED', 'RECHAZADO'];
 
 const STATUS_PROGRESS: Record<string, number> = {
   // Anticipo / Factura / Viatico
@@ -37,6 +37,7 @@ const ACTION_PROGRESS: Record<string, number> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
+  // Anticipo / Factura / Viatico
   PENDING: 'Enviado a aprobación',
   APPROVED_MANAGER: 'Aprobado por jefe',
   APPROVED_ACCOUNTANT: 'Aprobado por contabilidad',
@@ -44,6 +45,12 @@ const STATUS_LABELS: Record<string, string> = {
   PAID: 'Pagado',
   REJECTED: 'Rechazado',
   CANCELLED: 'Cancelado',
+  // Gasto
+  CREADO: 'Creado',
+  ENVIADO_A_JEFE: 'Enviado a jefe',
+  ENVIADO_A_CONTABILIDAD: 'Enviado a contabilidad',
+  LIQUIDADO: 'Liquidado',
+  RECHAZADO: 'Rechazado',
 };
 
 const ACTION_LABELS: Record<string, string> = {
@@ -62,7 +69,7 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-const ENTITIES = ['Anticipo', 'Factura', 'Viatico', 'Legalizacion'] as const;
+const ENTITIES = ['Anticipo', 'Factura', 'Viatico', 'Legalizacion', 'Gasto'] as const;
 
 type RequestEntity = typeof ENTITIES[number];
 type RequestSummary = {
@@ -90,7 +97,9 @@ async function getRequestsByEntity(entity: RequestEntity, userId?: number): Prom
       ? await prisma.factura.findMany({ where, select })
       : entity === 'Viatico'
         ? await prisma.viatico.findMany({ where, select })
-        : await prisma.legalizacion.findMany({ where, select });
+        : entity === 'Gasto'
+          ? await prisma.gasto.findMany({ where, select })
+          : await prisma.legalizacion.findMany({ where, select });
 
   return rows.map((row) => ({ ...row, entity }));
 }
@@ -217,11 +226,13 @@ export const dashboardService = {
           createdAt: request.createdAt,
           detailPath: request.entity === 'Anticipo'
             ? `/gestor-anticipos/${request.id}`
-            : request.entity === 'Factura'
+            : request.entity === 'Gasto'
               ? '/registro-gastos'
-              : request.entity === 'Legalizacion'
-                ? `/legalizacion-viaticos/${request.id}?mode=view`
-                : '/legalizacion-viaticos',
+              : request.entity === 'Factura'
+                ? '/registro-gastos'
+                : request.entity === 'Legalizacion'
+                  ? `/legalizacion-viaticos/${request.id}?mode=view`
+                  : '/legalizacion-viaticos',
         })),
       activities: activities.map((activity) => {
         const progress = getProgressFromActivity(activity.action, activity.details);

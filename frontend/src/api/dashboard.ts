@@ -27,7 +27,7 @@ export interface DashboardHome {
 
 export interface DashboardRequest {
   id: number;
-  entity: 'Anticipo' | 'Factura' | 'Viatico' | 'Legalizacion';
+  entity: 'Anticipo' | 'Factura' | 'Viatico' | 'Legalizacion' | 'Gasto';
   number: string;
   description: string;
   status: string;
