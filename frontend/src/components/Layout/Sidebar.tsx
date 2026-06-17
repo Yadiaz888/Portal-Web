@@ -41,13 +41,15 @@ export default function Sidebar() {
   return (
     <aside className={`${isCollapsed ? 'w-20' : 'w-64'} min-h-screen bg-white border-r border-gray-100 flex flex-col shrink-0 transition-all duration-300 relative`}>
       <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-5'} border-b border-gray-100 transition-all`}>
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-8 h-8 bg-[#E8450A] rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-            <span className="text-white font-bold text-sm">S</span>
-          </div>
+        <div className="flex items-center gap-2.5 overflow-hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className="w-8 h-8 shrink-0">
+            <rect width="40" height="40" rx="9" fill="#1A1F36"/>
+            <rect x="5" y="5" width="30" height="30" rx="6" fill="#E8450A"/>
+            <text x="20" y="27" fontFamily="Arial,sans-serif" fontWeight="700" fontSize="17" fill="white" textAnchor="middle" letterSpacing="-0.5">JT</text>
+          </svg>
           {!isCollapsed && (
-            <span className="font-bold text-[#1A1F36] text-lg leading-none transition-opacity duration-300">
-              justtime<span className="text-[#E8450A]">Gv</span>
+            <span className="font-bold text-[#1A1F36] text-lg leading-none transition-opacity duration-300 whitespace-nowrap">
+              justtime<span className="text-[#E8450A]">GV</span>
             </span>
           )}
         </div>
