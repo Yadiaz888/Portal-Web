@@ -12,7 +12,7 @@ export const OcrService = {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) throw new HttpError(500, 'GEMINI_API_KEY no configurada en el servidor.');
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-2.0-flash' });
+      const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-1.5-flash' });
 
       const prompt = `Analiza esta imagen de una factura, recibo o nota credito.
       Extrae la siguiente informacion y devuelvela UNICAMENTE en un formato JSON valido con esta estructura exacta (si no encuentras un dato, dejalo en null o cadena vacia):
